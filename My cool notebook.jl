@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 5b2ee40e-a2b8-11ea-0fef-c35fe6918860
 md"""
-# The tower of Hanoi 🗼
+# The tower of Hanoi 🗼 🪵
 
 The tower of hanoi is a famous puzzle.
 
