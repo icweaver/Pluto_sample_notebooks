@@ -1,12 +1,12 @@
 ### A Pluto.jl notebook ###
-# v0.12.18
+# v0.17.5
 
 using Markdown
 using InteractiveUtils
 
 # ╔═╡ 5b2ee40e-a2b8-11ea-0fef-c35fe6918860
 md"""
-# The tower of Hanoi
+# The tower of Hanoi 🗼
 
 The tower of hanoi is a famous puzzle.
 
@@ -236,6 +236,21 @@ else
 	"""
 end
 
+# ╔═╡ 00000000-0000-0000-0000-000000000001
+PLUTO_PROJECT_TOML_CONTENTS = """
+[deps]
+"""
+
+# ╔═╡ 00000000-0000-0000-0000-000000000002
+PLUTO_MANIFEST_TOML_CONTENTS = """
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.7.1"
+manifest_format = "2.0"
+
+[deps]
+"""
+
 # ╔═╡ Cell order:
 # ╟─5b2ee40e-a2b8-11ea-0fef-c35fe6918860
 # ╟─95fbd0d2-a2b9-11ea-0682-fdf783251797
@@ -265,3 +280,5 @@ end
 # ╠═10fb1c56-a2c5-11ea-2a06-0d8c36bfa138
 # ╠═8ea7f944-a329-11ea-22cc-4dbd11ec0610
 # ╟─e54add0a-a330-11ea-2eeb-1d42f552ba38
+# ╟─00000000-0000-0000-0000-000000000001
+# ╟─00000000-0000-0000-0000-000000000002
