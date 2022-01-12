@@ -34,6 +34,7 @@ df_all = let
 		"pl_radj",
 		"pl_bmasse",
 		"pl_bmassj",
+		"pl_eqt",
 		"pl_orbsmax",
 		"pl_orbper",
 		"st_teff",
@@ -52,7 +53,7 @@ Not all of these entries have values for every parameter, so we keep only the on
 """
 
 # ╔═╡ e766d896-64da-4382-8aaf-ba4274d9de47
-df = dropmissing(df_all)
+df = dropmissing(df_all, [:pl_orbper, :pl_bmassj])
 
 # ╔═╡ 438e6e06-ccc4-4a6a-aca9-2a2558dcfde9
 md"""
@@ -86,29 +87,22 @@ md"""
 TESS data
 """
 
-# ╔═╡ 822790a3-8ae7-4514-8f80-af95700dcbd0
-df_tess = @subset df occursin("TESS", :disc_facility)
-
 # ╔═╡ f1b8cc1e-65fc-42d6-b2fe-0fc5817d8fda
-# @chain df begin
-# 	@subset occursin("TESS", :disc_facility) &
-# 	(:pl_bmasse ≤ 10.0) &
-# 	(:pl_rade ≤ 6.0) &
-# 	(:pl_orbper ≤ 20.0)
-# end
+df_tess_earth = @chain df begin
+	@subset occursin("TESS", :disc_facility) &
+	(:pl_bmasse ≤ 10.0) &
+	(:pl_rade ≤ 10.0)
+end
 
-# ╔═╡ 1335d9af-96e9-48d5-bec7-97cd45011085
-
-
-# ╔═╡ 72ed4ef4-3025-44b2-8698-e09a7f86302c
+# ╔═╡ a04b1e0d-ae73-459a-a163-7f1fa94d5ef8
 let
-	plt = data(df_tess) *
+	plt = data(df_tess_earth) *
 		mapping(
-			:pl_bmasse => "Mass [Earth mass]",
-			:pl_rade => "Radius [Earth radius]",
-			color = :pl_orbper,
-		)
-
+			:pl_bmasse => "Mass (Earth mass)",
+			:pl_rade => "Radius (Earth radius)",
+			color = :pl_eqt => (x -> x / 293) => "Eq. temperature (room temp.)"
+		) *
+		visual(markersize = 20)
 	draw(plt)
 end
 
@@ -1446,10 +1440,8 @@ version = "3.5.0+0"
 # ╟─5948b593-0d26-4594-85f4-ac463d09930c
 # ╠═b4a9d738-6c6b-420a-a342-db1173e01d51
 # ╠═44928733-77ca-414b-9716-7a6a16e31895
-# ╠═822790a3-8ae7-4514-8f80-af95700dcbd0
 # ╠═f1b8cc1e-65fc-42d6-b2fe-0fc5817d8fda
-# ╠═1335d9af-96e9-48d5-bec7-97cd45011085
-# ╠═72ed4ef4-3025-44b2-8698-e09a7f86302c
+# ╠═a04b1e0d-ae73-459a-a163-7f1fa94d5ef8
 # ╠═e9b3afb0-d107-47c8-a582-80ceb93d1501
 # ╠═a4f4dde1-48bb-436e-b282-9b8298df3a46
 # ╟─00000000-0000-0000-0000-000000000001
