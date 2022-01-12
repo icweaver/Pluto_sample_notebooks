@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ a4f4dde1-48bb-436e-b282-9b8298df3a46
-using AlgebraOfGraphics, CairoMakie, CSV, DataFrames, HTTP, PlutoUI
+using AlgebraOfGraphics, CairoMakie, CSV, DataFrames, HTTP, PlutoUI, PythonCall, CondaPkg, DataFrameMacros, Chain
 
 # ╔═╡ aff8d4ba-732f-11ec-0c04-11dea268a8c5
 md"""
@@ -18,7 +18,7 @@ $(TableOfContents())
 
 # ╔═╡ c868285d-98d2-4f7a-bfc1-efe780828f00
 md"""
-## Getting the data
+## Getting the data 📦
 
 To get started, let's pull down the data of all known exoplanets and a few of their key parameters from the NASA Exoplanet Archive [TAP API](https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html):
 """
@@ -31,6 +31,7 @@ df_all = let
 		"discoverymethod",
 		"tic_id",
 		"pl_rade",
+		"pl_radj",
 		"pl_bmasse",
 		"pl_bmassj",
 		"pl_orbsmax",
@@ -46,26 +47,73 @@ df_all = let
 end
 
 # ╔═╡ 3757b27f-b1af-44c0-b92f-34c5f975faef
-
+md"""
+Not all of these entries have values for every parameter, so we keep only the ones with available entries for the rest of this notebook:
+"""
 
 # ╔═╡ e766d896-64da-4382-8aaf-ba4274d9de47
 df = dropmissing(df_all)
 
+# ╔═╡ 438e6e06-ccc4-4a6a-aca9-2a2558dcfde9
+md"""
+## Detection methods 🔭
+
+There are a variety of ways to [detect exoplanets](https://en.wikipedia.org/wiki/Methods_of_detecting_exoplanets), so we display them from the data here:
+"""
+
 # ╔═╡ 0d2abcfb-90bc-496f-91bf-3a8b687e43ff
 let
 	plt = data(df) *
-		mapping(:pl_orbper, :pl_bmassj, color=:discoverymethod)
+		mapping(
+			:pl_orbper => "Period [d]",
+			:pl_bmassj => "Mass [Jupiter mass]",
+			color = :discoverymethod => "Discovery method",
+		)
 
 	draw(plt, axis=(xscale=log10, yscale=log10))
 end
 
+# ╔═╡ 5948b593-0d26-4594-85f4-ac463d09930c
+md"""
+The vast majority of exoplanets to date have been discovered via the [transit method](https://en.wikipedia.org/wiki/Methods_of_detecting_exoplanets#Transit_photometry), with many more discoveries expected to come from space-based survey missions such as [TESS](https://tess.mit.edu/):
+"""
+
 # ╔═╡ b4a9d738-6c6b-420a-a342-db1173e01d51
 combine(groupby(df, :discoverymethod), nrow)
 
-# ╔═╡ 5948b593-0d26-4594-85f4-ac463d09930c
+# ╔═╡ 44928733-77ca-414b-9716-7a6a16e31895
 md"""
-The vast majority of exoplanets to date have been discovered via the [transit method](https://en.wikipedia.org/wiki/Methods_of_detecting_exoplanets#Transit_photometry), with many more discoveries expected to come from space-based survey missions such as [TESS](https://tess.mit.edu/)
+TESS data
 """
+
+# ╔═╡ 822790a3-8ae7-4514-8f80-af95700dcbd0
+df_tess = @subset df occursin("TESS", :disc_facility)
+
+# ╔═╡ f1b8cc1e-65fc-42d6-b2fe-0fc5817d8fda
+# @chain df begin
+# 	@subset occursin("TESS", :disc_facility) &
+# 	(:pl_bmasse ≤ 10.0) &
+# 	(:pl_rade ≤ 6.0) &
+# 	(:pl_orbper ≤ 20.0)
+# end
+
+# ╔═╡ 1335d9af-96e9-48d5-bec7-97cd45011085
+
+
+# ╔═╡ 72ed4ef4-3025-44b2-8698-e09a7f86302c
+let
+	plt = data(df_tess) *
+		mapping(
+			:pl_bmasse => "Mass [Earth mass]",
+			:pl_rade => "Radius [Earth radius]",
+			color = :pl_orbper,
+		)
+
+	draw(plt)
+end
+
+# ╔═╡ e9b3afb0-d107-47c8-a582-80ceb93d1501
+set_aog_theme!()
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -73,17 +121,25 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
+CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
+DataFrameMacros = "75880514-38bc-4a95-a458-c2aea5a3a702"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 
 [compat]
 AlgebraOfGraphics = "~0.6.0"
 CSV = "~0.9.11"
 CairoMakie = "~0.6.6"
+Chain = "~0.4.10"
+CondaPkg = "~0.2.3"
+DataFrameMacros = "~0.2.1"
 DataFrames = "~1.3.1"
 HTTP = "~0.9.17"
 PlutoUI = "~0.7.29"
+PythonCall = "~0.5.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -190,6 +246,11 @@ git-tree-sha1 = "4b859a208b2397a7a623a03449e4636bdb17bcf2"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.16.1+1"
 
+[[deps.Chain]]
+git-tree-sha1 = "339237319ef4712e6e5df7758d0bccddf5c237d9"
+uuid = "8be319e6-bccf-4806-a6f7-6fae938471bc"
+version = "0.4.10"
+
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
 git-tree-sha1 = "926870acb6cbcf029396f2f2de030282b6bc1941"
@@ -201,6 +262,12 @@ deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
 git-tree-sha1 = "bf98fa45a0a4cee295de98d4c1462be26345b9a1"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.2"
+
+[[deps.CodecBzip2]]
+deps = ["Bzip2_jll", "Libdl", "TranscodingStreams"]
+git-tree-sha1 = "2e62a725210ce3c3c2e1a3080190e7ca491f18d7"
+uuid = "523fee87-0ab8-5b00-afb7-3ecf72e48cfd"
+version = "0.7.2"
 
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -248,6 +315,12 @@ version = "3.41.0"
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
+[[deps.CondaPkg]]
+deps = ["MicroMamba", "Pkg", "TOML"]
+git-tree-sha1 = "62b9ee4b58ad286452699d5cca555dfb03fd182f"
+uuid = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
+version = "0.2.3"
+
 [[deps.Contour]]
 deps = ["StaticArrays"]
 git-tree-sha1 = "9f02045d934dc030edad45944ea80dbd1f0ebea7"
@@ -263,6 +336,12 @@ version = "4.1.0"
 git-tree-sha1 = "cc70b17275652eb47bc9e5f81635981f13cea5c8"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.9.0"
+
+[[deps.DataFrameMacros]]
+deps = ["DataFrames"]
+git-tree-sha1 = "cff70817ef73acb9882b6c9b163914e19fad84a9"
+uuid = "75880514-38bc-4a95-a458-c2aea5a3a702"
+version = "0.2.1"
 
 [[deps.DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
@@ -727,6 +806,12 @@ git-tree-sha1 = "5455aef09b40e5020e1520f551fa3135040d4ed0"
 uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2021.1.1+2"
 
+[[deps.MacroTools]]
+deps = ["Markdown", "Random"]
+git-tree-sha1 = "3d3e902b31198a27340d0bf00d6ac452866021cf"
+uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+version = "0.5.9"
+
 [[deps.Makie]]
 deps = ["Animations", "Base64", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "Distributions", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "Formatting", "FreeType", "FreeTypeAbstraction", "GeometryBasics", "GridLayoutBase", "ImageIO", "IntervalSets", "Isoband", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "MakieCore", "Markdown", "Match", "MathTeXEngine", "Observables", "Packing", "PlotUtils", "PolygonOps", "Printf", "Random", "RelocatableFolders", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "StaticArrays", "Statistics", "StatsBase", "StatsFuns", "StructArrays", "UnicodeFun"]
 git-tree-sha1 = "56b0b7772676c499430dc8eb15cfab120c05a150"
@@ -768,6 +853,12 @@ version = "1.0.3"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+
+[[deps.MicroMamba]]
+deps = ["CodecBzip2", "Downloads", "Scratch", "Tar"]
+git-tree-sha1 = "cf985c34c94191497d77804e8b48f99cf1a9084d"
+uuid = "0b3b1443-0f03-428d-bdfb-f27f9c1191ea"
+version = "0.1.2"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -963,6 +1054,12 @@ deps = ["Distributed", "Printf"]
 git-tree-sha1 = "afadeba63d90ff223a6a48d2009434ecee2ec9e8"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
 version = "1.7.1"
+
+[[deps.PythonCall]]
+deps = ["CondaPkg", "Dates", "Libdl", "MacroTools", "Markdown", "Pkg", "Requires", "Serialization", "Tables", "UnsafePointers"]
+git-tree-sha1 = "4069e80d13c3b33a2b5680a1464baf264c36e5a0"
+uuid = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
+version = "0.5.0"
 
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
@@ -1202,6 +1299,11 @@ git-tree-sha1 = "53915e50200959667e78a92a418594b428dffddf"
 uuid = "1cfade01-22cf-5700-b092-accc4b62d6e1"
 version = "0.4.1"
 
+[[deps.UnsafePointers]]
+git-tree-sha1 = "c81331b3b2e60a982be57c046ec91f599ede674a"
+uuid = "e17b2a0c-0bdf-430a-bd0c-3a23cae4ff39"
+version = "1.0.0"
+
 [[deps.WeakRefStrings]]
 deps = ["DataAPI", "InlineStrings", "Parsers"]
 git-tree-sha1 = "c69f9da3ff2f4f02e811c3323c22e5dfcb584cfa"
@@ -1337,11 +1439,18 @@ version = "3.5.0+0"
 # ╟─aff8d4ba-732f-11ec-0c04-11dea268a8c5
 # ╟─c868285d-98d2-4f7a-bfc1-efe780828f00
 # ╠═4a494f64-1529-4d31-911d-5a43cd6d9295
-# ╠═3757b27f-b1af-44c0-b92f-34c5f975faef
+# ╟─3757b27f-b1af-44c0-b92f-34c5f975faef
 # ╠═e766d896-64da-4382-8aaf-ba4274d9de47
+# ╟─438e6e06-ccc4-4a6a-aca9-2a2558dcfde9
 # ╠═0d2abcfb-90bc-496f-91bf-3a8b687e43ff
+# ╟─5948b593-0d26-4594-85f4-ac463d09930c
 # ╠═b4a9d738-6c6b-420a-a342-db1173e01d51
-# ╠═5948b593-0d26-4594-85f4-ac463d09930c
+# ╠═44928733-77ca-414b-9716-7a6a16e31895
+# ╠═822790a3-8ae7-4514-8f80-af95700dcbd0
+# ╠═f1b8cc1e-65fc-42d6-b2fe-0fc5817d8fda
+# ╠═1335d9af-96e9-48d5-bec7-97cd45011085
+# ╠═72ed4ef4-3025-44b2-8698-e09a7f86302c
+# ╠═e9b3afb0-d107-47c8-a582-80ceb93d1501
 # ╠═a4f4dde1-48bb-436e-b282-9b8298df3a46
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
