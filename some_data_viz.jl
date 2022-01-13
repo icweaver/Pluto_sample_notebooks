@@ -123,6 +123,25 @@ df_processed = df \
 ans = df_processed.plot(); plt.show()
 """ => ans
 
+# ╔═╡ 5ae942d8-f5a1-48ea-a26c-62139e45d69f
+html"""
+<style>
+#launch_binder {
+	display: none;
+}
+body.disable_ui main {
+		max-width : 95%;
+	}
+@media screen and (min-width: 1081px) {
+	body.disable_ui main {
+		margin-left : 10px;
+		max-width : 72%;
+		align-self: flex-start;
+	}
+}
+</style>
+"""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1390,5 +1409,6 @@ version = "3.5.0+0"
 # ╠═22f59dc2-f2f8-4cfd-b2bf-c6db0b102810
 # ╠═c23aefb7-41ae-4a13-9af7-9e57a9c112dd
 # ╠═170ae794-912b-4751-89d2-e0ba304741bd
+# ╟─5ae942d8-f5a1-48ea-a26c-62139e45d69f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
