@@ -8,7 +8,21 @@ on:
 
 jobs:
     build-and-deploy:
-        runs-on: ubuntu-latest
+        name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+          fail-fast: false
+          matrix:
+            version:
+              - '1.6'
+              - '1'
+              - 'nightly'
+            os:
+              - ubuntu-latest
+              - macOS-latest
+              - windows-latest
+            arch:
+              - x64
         steps:
             - name: Checkout
               uses: actions/checkout@v2
