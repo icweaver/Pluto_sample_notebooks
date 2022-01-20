@@ -1,4 +1,4 @@
-name: Export Pluto notebooks
+name: Test Pluto notebooks
 on:
     push:
         branches:
@@ -8,7 +8,21 @@ on:
 
 jobs:
     build-and-deploy:
-        runs-on: ubuntu-latest
+        name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+          fail-fast: false
+          matrix:
+            version:
+              - '1.6'
+              - '1'
+              - 'nightly'
+            os:
+              - ubuntu-latest
+              - macOS-latest
+              - windows-latest
+            arch:
+              - x64
         steps:
             - name: Checkout
               uses: actions/checkout@v2
@@ -30,7 +44,7 @@ jobs:
                       ${{ runner.os }}-pluto_state_cache-v2-${{ hashFiles('**/Project.toml', '**/Manifest.toml', '.github/workflows/*' ) }}
 
 
-            - name: Run & export Pluto notebooks
+            - name: Run Pluto notebooks
               run: |
                 julia -e 'using Pkg
                   Pkg.activate(mktempdir())
@@ -40,17 +54,5 @@ jobs:
 
                   import PlutoSliderServer
 
-                  PlutoSliderServer.github_action(".";
-                    Export_cache_dir="pluto_state_cache",
-                    Export_baked_notebookfile=false,
-                    Export_baked_state=false,
-                    # more parameters can go here
-                  )'
-
-
-            - name: Deploy to gh-pages
-              uses: JamesIves/github-pages-deploy-action@releases/v3
-              with:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  BRANCH: gh-pages
-                  FOLDER: .
+                  PlutoSliderServer.run_directory()
+                  '
