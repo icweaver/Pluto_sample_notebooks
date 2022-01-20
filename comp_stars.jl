@@ -290,14 +290,14 @@ df_paper = @chain _df_paper begin
 end
 
 # ╔═╡ 8fbc74d9-c993-4757-865f-b7ec3d84495c
-latexify(df_paper, fmt="%.2f")
+latexify(df_paper, latex=false, fmt="%.2f")
 
 # ╔═╡ c9b37015-057e-4838-b510-5762819b2462
 md"""
 !!! note
 	We used the `aside` macro from `DataFramesMeta.jl` to compute intermediate values needed for ``D`` before adding it to our table, which was all done in a chain of actions with `@chain` from the [`Chain.jl`](https://github.com/jkrumbiegel/Chain.jl) package that is automatically included (exported) with `DataFramesMeta.jl`.
 
-	We could also have used bangs (!) to mutate tables in place and save memory, e.g.:
+	We could also have used bangs (!) to mutate tables in-place and save memory, e.g.:
 
 	```julia
 	@chain df_paper begin
@@ -322,10 +322,10 @@ md"""
 !!! note
 	We used `latex=false` to remove the dollar signs around each number, because this will be used in a [deluxetable](https://journals.aas.org/aastexguide/#preamble_deluxetable) environment that can handle automatic math mode columns.
 
-	To display the nicely rendered ``\LaTeX`` table at the beginning of the document, we did:
+	To display the nicely rendered ``\LaTeX`` table at the beginning of the document, we just used the default Markdown backend:
 
 	```julia
-	latexify(df_paper, fmt="%.2f")
+	latexify(df_paper, latex=false, fmt="%.2f")
 	```
 """
 
@@ -337,9 +337,6 @@ We now have a table that we can copy-and-paste into a paper that is definitely n
 # ╔═╡ 4188732d-1d88-4e98-8510-f74224641919
 html"""
 <style>
-#launch_binder {
-	display: none;
-}
 body.disable_ui main {
 		max-width : 95%;
 	}
