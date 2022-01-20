@@ -32,7 +32,9 @@ jobs:
 
             - name: Run & export Pluto notebooks
               run: |
-                julia -e 'using Pkg'
+                julia -e 'using Pkg
+                Pkg.activate(mktempdir())
+                '
 
             - name: Deploy to gh-pages
               uses: JamesIves/github-pages-deploy-action@releases/v3
