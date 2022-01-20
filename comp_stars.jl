@@ -46,53 +46,15 @@ Las Campanas Observatory ([LCO](http://www.lco.cl/)) is home to several world-cl
 **[More background intro for general public about multi-object slit spectroscopy and need for SMF files]**
 
 SMF files are essentially just text files with a list of target names and positions that are sent to the telescope to let the observatory know how to cut the mask for observations. They also include additonal information for the slits, but this will not be the focus for this notebook. Now this is all well and good, except for that these SMF files tend to look something like this:
+
+$(Resource("https://github.com/icweaver/Pluto_sample_notebooks/raw/main/data/wasp50s.SMF"))
 """
 
-# ╔═╡ 07ae758c-9d96-4bb4-8545-ee0c69db497f
-"NAME wasp50s
-OBSERVER Cookie Monster
-TITLE wasp50 science mask
-MADE 2013-08-09  MaskGen  2.27.92 
-TELESCOPE 71161.1 0.80906 3 Magellan
-INSTRUMENT IMACS_sc 
-DISPERSER  IMACS_grism_300  1  17.50000
-POSITION 0 02:55:00.000 -10:57:00.00 2000.0  0.0 0.0 0.0
-!Constellation (Eri) Eridanus
-!# No rotator warnings above horizon.
-!.OC wasp50s 02:55:00.000 -10:57:00.00 2000.0 0.0 0.0 -136.15 OFF  02:55:11.3 -10:41:29 2000.0 02:54:41.9 -11:12:17 2000.0 
-WAVELENGTH 6749.3
-TEMPERATURE 12.0
-EPOCH 2013.70211
-WLIMIT 4000.1 7900.1
-DREF  0
-HANGLE    0
-DATE  56548
-SLIT WASP50    02:54:45.137 -10:53:53.03   75.570   64.529  3.450  3.795  3.795    0.00 # Vmag= 11.721
-SLIT c06       02:54:49.392 -10:51:54.94   53.950  105.319  3.450  3.795  3.795    0.00 # Vmag= 11.585
-SLIT c13       02:54:23.502 -11:02:28.19  185.851 -113.558  3.450  3.795  3.795    0.00 # Vmag= 13.075
-SLIT c15       02:54:32.141 -10:54:36.94  141.733   49.389  3.450  3.795  3.795    0.00 # Vmag= 13.252
-SLIT c18       02:54:56.565 -11:02:27.36   17.461 -113.018  3.450  3.795  3.795    0.00 # Vmag= 13.568
-SLIT c20       02:54:14.107 -11:03:06.82  233.973 -127.107  3.450  3.795  3.795    0.00 # Vmag= 13.662
-SLIT c21       02:54:52.547 -10:51:26.96   37.908  114.984  3.450  3.795  3.795    0.00 # Vmag= 13.668
-SLIT c23       02:55:16.318 -10:53:50.69  -82.969   65.341  3.450  3.795  3.795    0.00 # Vmag= 13.708
-SLIT c28       02:55:35.977 -10:56:20.97 -183.127   13.446  3.450  3.795  3.795    0.00 # Vmag= 13.885
-HOLE ref015    02:54:53.542 -11:08:45.55   32.898 -244.204  1.725 1  0.862  0.862    0.00 # Vmag= 14.897
-HOLE ref031    02:55:46.106 -10:51:22.87 -235.193  116.663  1.725 1  0.862  0.862    0.00 # Vmag= 15.430
-HOLE ref036    02:54:05.105 -10:56:02.52  280.104   19.807  1.725 1  0.862  0.862    0.00 # Vmag= 15.490
-HOLE ref042    02:54:40.376 -11:01:26.73   99.779  -92.124  1.725 1  0.862  0.862    0.00 # Vmag= 15.714
-HOLE ref044    02:54:06.394 -10:50:53.83  273.783  126.843  1.725 1  0.862  0.862    0.00 # Vmag= 15.728
-HOLE ref046    02:54:53.749 -10:55:28.22   31.764   31.665  1.725 1  0.862  0.862    0.00 # Vmag= 15.762
-HOLE ref053    02:54:56.291 -10:45:54.96   18.908  230.088  1.725 1  0.862  0.862    0.00 # Vmag= 15.865
-HOLE ref054    02:55:19.594 -10:49:31.69  -99.775  154.931  1.725 1  0.862  0.862    0.00 # Vmag= 15.894
-HOLE ref058    02:55:44.049 -11:00:33.94 -224.424  -74.096  1.725 1  0.862  0.862    0.00 # Vmag= 15.997
-HOLE ref068    02:55:08.761 -11:01:26.28  -44.527  -91.920  1.725 1  0.862  0.862    0.00 # Vmag= 16.266
-HOLE ref071    02:54:25.846 -11:09:07.73  174.283 -252.376  1.725 1  0.862  0.862    0.00 # Vmag= 16.322
-HOLE ref072    02:54:42.547 -10:52:41.78   88.772   89.150  1.725 1  0.862  0.862    0.00 # Vmag= 16.351
-HOLE ref076    02:54:18.818 -10:46:32.58  210.387  217.464  1.725 1  0.862  0.862    0.00 # Vmag= 16.407
-HOLE ref080    02:55:46.477 -10:59:38.07 -236.851  -54.783  1.725 1  0.862  0.862    0.00 # Vmag= 16.567
-HOLE ref085    02:54:19.177 -10:58:22.60  207.882  -28.623  1.725 1  0.862  0.862    0.00 # Vmag= 17.101
-<and then some random long string>
-" |> Text
+# ╔═╡ 4a079964-5ac0-47a0-9ff0-c294df62772e
+h = Resource("https://github.com/icweaver/Pluto_sample_notebooks/raw/main/data/wasp50s.txt")
+
+# ╔═╡ a5b80649-b30c-4c23-9c25-9fadd38e67e3
+@which Resource("https://github.com/icweaver/Pluto_sample_notebooks/raw/main/data/wasp50s.SMF")
 
 # ╔═╡ 3dcf92a9-21c2-4cfd-9089-e6fb501c7caf
 md"""
@@ -127,7 +89,7 @@ We are first going to use [`CSV.jl`](https://github.com/JuliaData/CSV.jl) to rea
 """
 
 # ╔═╡ 89136b56-99f6-49bf-a823-6447fee208fc
-df_SMF = CSV.read("wasp50s.SMF", DataFrame;
+df_SMF = CSV.read(download("https://github.com/icweaver/Pluto_sample_notebooks/raw/main/data/wasp50s.SMF"), DataFrame;
 	header = false, # Wish there was one
 	skipto = 19, # This is the row where the good stuff starts
 	footerskip = 1, # Skip that random string at the bottom
@@ -332,6 +294,25 @@ md"""
 # ╔═╡ 34d1417b-2d56-4de0-800e-e65d5f9817fb
 md"""
 We now have a table that we can copy-and-paste into a paper that is definitely not being ignored right now.
+"""
+
+# ╔═╡ 4188732d-1d88-4e98-8510-f74224641919
+html"""
+<style>
+#launch_binder {
+	display: none;
+}
+body.disable_ui main {
+		max-width : 95%;
+	}
+@media screen and (min-width: 1081px) {
+	body.disable_ui main {
+		margin-left : 10px;
+		max-width : 72%;
+		align-self: flex-start;
+	}
+}
+</style>
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -806,8 +787,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─80664df1-a135-44f9-b83f-41029a503c77
-# ╟─46bee12a-81ca-43ea-932f-8cfa22ad1e9a
-# ╟─07ae758c-9d96-4bb4-8545-ee0c69db497f
+# ╠═46bee12a-81ca-43ea-932f-8cfa22ad1e9a
+# ╠═4a079964-5ac0-47a0-9ff0-c294df62772e
+# ╠═a5b80649-b30c-4c23-9c25-9fadd38e67e3
 # ╟─3dcf92a9-21c2-4cfd-9089-e6fb501c7caf
 # ╟─3941e471-6378-4f6b-a117-81aa08eff0c7
 # ╟─8fbc74d9-c993-4757-865f-b7ec3d84495c
@@ -848,5 +830,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─52100a8e-3adf-4337-9985-645a10d9e8cd
 # ╟─34d1417b-2d56-4de0-800e-e65d5f9817fb
 # ╟─27c0f880-b775-458f-9092-a0d4d743d9ab
+# ╟─4188732d-1d88-4e98-8510-f74224641919
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
