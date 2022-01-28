@@ -1,5 +1,2 @@
 .CondaPkg/
-CondaPkg.toml
-data/
 Manifest.toml
-exoplanets_example_PythonCall.jl
