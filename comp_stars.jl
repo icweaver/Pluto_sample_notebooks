@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.5
+# v0.17.7
 
 using Markdown
 using InteractiveUtils
@@ -26,26 +26,28 @@ using LinearAlgebra # Defines `norm` for us
 using Latexify
 
 # ╔═╡ 27c0f880-b775-458f-9092-a0d4d743d9ab
-using PlutoUI # Handy for making widgets and such, like a table of contents
+begin
+	using PlutoUI # Handy for making widgets and such, like a table of contents
+	import MarkdownLiteral: @mdx # Markdown + HTML = superpowers
+end
 
 # ╔═╡ 80664df1-a135-44f9-b83f-41029a503c77
-md"""
+@mdx """
 # Observations at LCO
 
-In this notebook, we are going to take an *ugly* SMF file and convert it into a gorgeous ``\LaTeX`` table, complete with star coordinates pulled down from VizieR via [astroquery](https://astroquery.readthedocs.io/en/latest/) ✨
-
-$(TableOfContents())
+In this notebook, we are going to take an *ugly* SMF file and convert it into a gorgeous ``\\LaTeX`` table, complete with star coordinates pulled down from VizieR via [astroquery](https://astroquery.readthedocs.io/en/latest/) ✨
 """
 
+# ╔═╡ e1ae732a-22de-4f5d-8216-064dd3e3a686
+TableOfContents()
+
 # ╔═╡ 46bee12a-81ca-43ea-932f-8cfa22ad1e9a
-md"""
+@mdx """
 ## Introduction 🤚
 
 Las Campanas Observatory ([LCO](http://www.lco.cl/)) is home to several world-class telescopes that are used in a wide range of astronomy fields. In particular, The 6.5 meter twin [Magellan telescopes](https://obs.carnegiescience.edu/Magellan) provide essential facilities for observing exoplanet atmopsheres with their [IMACS and LDSS3C spectrographs](http://www.lco.cl/instruments/).
 
-**[More background intro for general public about multi-object slit spectroscopy and need for SMF files]**
-
-SMF files are essentially just text files with a list of target names and positions that are sent to the telescope to let the observatory know how to cut the mask for observations. They also include additonal information for the slits, but this will not be the focus for this notebook. Now this is all well and good, except for that these SMF files tend to look something like this:
+SMF files are essentially just text files with a list of target names and positions that are sent to the telescope to let the observatory know how to cut the mask for observations. They also include additonal information for the slits, but this will not be the focus for this notebook. Now this is all well and good, except for the fact that these SMF files tend to look something like this:
 """
 
 # ╔═╡ 4a079964-5ac0-47a0-9ff0-c294df62772e
@@ -95,18 +97,18 @@ HOLE ref085    02:54:19.177 -10:58:22.60  207.882  -28.623  1.725 1  0.862  0.86
 " |> Text
 
 # ╔═╡ 3dcf92a9-21c2-4cfd-9089-e6fb501c7caf
-md"""
+@mdx """
 !!! note
 	More info about what each column means can be found [here](https://code.obs.carnegiescience.edu/maskgen/v214/smdfile.txt/view).
 """
 
 # ╔═╡ 3941e471-6378-4f6b-a117-81aa08eff0c7
-md"""
-We need a way to ingest this highly unstructured file and extract some useful information from it. For this notebook, the final product will be this summary report that we can paste into a ``\LaTeX`` document:
+@mdx """
+We need a way to ingest this highly unstructured file and extract some useful information from it. For this notebook, the final product will be this summary report that we can paste into a ``\\LaTeX`` document:
 """
 
 # ╔═╡ af553292-ae3e-4966-9746-79de4b86a7e1
-md"""
+@mdx """
 ## Game plan 🏈
 To generate the above, we are going to do the following:
 
@@ -120,14 +122,14 @@ Alright, let's get started.
 """
 
 # ╔═╡ 769c4b03-4ac0-4a25-9e7d-21825261c3dd
-md"""
-## 1. Data ingestion 📖
+@mdx """
+## 1. Read the SMF 🔎
 
 We are first going to use [`CSV.jl`](https://github.com/JuliaData/CSV.jl) to read the SMF file into a `DataFrame` (provided by [`DataFrames.jl`](https://github.com/JuliaData/DataFrames.jl)):
 """
 
 # ╔═╡ 89136b56-99f6-49bf-a823-6447fee208fc
-df_SMF = CSV.read(download("https://github.com/icweaver/Pluto_sample_notebooks/raw/main/data/wasp50s.SMF"), DataFrame;
+df_SMF = CSV.read(download("https://github.com/icweaver/WASP-50b/raw/main/notebooks/data/raw_data/wasp50s.SMF"), DataFrame;
 	header = false, # Wish there was one
 	skipto = 19, # This is the row where the good stuff starts
 	footerskip = 1, # Skip that random string at the bottom
@@ -138,7 +140,7 @@ df_SMF = CSV.read(download("https://github.com/icweaver/Pluto_sample_notebooks/r
 )
 
 # ╔═╡ 16d610c6-6b7e-46a2-bd54-487392248302
-md"""
+@mdx """
 Next let's just select the columns that we will need for the report. We use the `@select` macro from the [`DataFramesMeta.jl`](https://github.com/JuliaData/DataFramesMeta.jl) package to accomplish this in a convenient way: 
 """
 
@@ -150,25 +152,25 @@ df = @select df_SMF begin
 end
 
 # ╔═╡ ed944c35-09a6-4b69-8ccc-20e238fa488d
-md"""
+@mdx """
 !!! tip
 	There is A LOT more that we can do with these kinds of macros. A nice overview from the creator of `DataFrames.jl` can be found [here](https://bkamins.github.io/julialang/2021/11/19/dfm.html).
 """
 
 # ╔═╡ 07d51156-9b82-4b9b-b6a6-a8bf09966880
-md"""
+@mdx """
 We also used `hms2deg` and `dms2deg` from [`AstroAngles.jl`](https://github.com/JuliaAstro/AstroAngles.jl) to convert the RA and Dec into a format that can automatically be read by `astroquery`, which we will do next.
 """
 
 # ╔═╡ 21e927a2-ae8b-4623-ba17-e98ca3c04f60
-md"""
-## 2. Pull down some data 📚
+@mdx """
+## 2. Query the star catalog 📖
 
 Here comes the fun part. We are going to feed this table into the Python package `astroquery`, which will query an all-sky star catalog for us and return the corresponding table of results. Let's start by setting up a minimal Python environment and download `astroquery` into it: 
 """
 
 # ╔═╡ 75a654c0-f15d-4cf0-b8bd-8f7a10de0e59
-md"""
+@mdx """
 We use [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl) to install a light-weight Python environment (using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)) into a temporary folder via [`CondaPkg.jl`](https://github.com/cjdoris/CondaPkg.jl). `PythonCall.jl` will also enable us to seamlessly interact with Python objects from Julia. Finally, we download `astroquery` and a few other Python packages that will be needed for compatibility reasons later:
 """
 
@@ -176,7 +178,7 @@ We use [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl) to install a 
 CondaPkg.add.(("astroquery", "astropy", "pandas")); CondaPkg.resolve()
 
 # ╔═╡ 137bb020-1aae-4eb3-9ad7-976163f9f685
-md"""
+@mdx """
 Now that that's all set up, let's import some things!
 """
 
@@ -187,7 +189,7 @@ Now that that's all set up, let's import some things!
 end
 
 # ╔═╡ 9a4f6266-f761-4eca-8eba-dd8f611a56bf
-md"""
+@mdx """
 For SOME reason, the only flavor of table that `astroquery` accepts is an astropy `Table`, so we are going to do the following roundabout conversions to make the 🐍 happy:
 
 ```
@@ -206,7 +208,7 @@ results_astropy = vz.Vizier.query_region(
 )[0]
 
 # ╔═╡ 9c710f1f-4029-4678-8ed8-654ffe107a59
-md"""
+@mdx """
 !!! note
 	We also could have done:
 	
@@ -214,16 +216,16 @@ md"""
 	ap.Table.from_pandas(pytable(df))
 	```
 
-	for the conversion, but pipes `|>` can make things look clearer sometimes.
+	for the conversion, but pipes `|>` can help make multi-step workflows more transparent.
 """
 
 # ╔═╡ 905127e7-16ae-4d8d-8445-7197cc5dee2a
-md"""
+@mdx """
 Alright, we have a table of results now! These are the list of objects (from the [UCAC4 catalog](https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=I/322)) that, row-by-row from `df`, are within 1 arcsecond of the RA and Decs specified. We set this radius to be small enough so that only one target from the catalog (ideally the star we are searching for) matches the coords given.
 """
 
 # ╔═╡ 1f2afbc8-5e04-4f18-b047-90775443d572
-md"""
+@mdx """
 ## 3. Generate the report ✏️
 
 Now that we have our list of targets, let's extract a few key columns and compute a color metric, for example. First let's convert the returned astropy `Table` back to a native Julia `DataFrame` to make things a bit easier to work with:
@@ -233,16 +235,16 @@ Now that we have our list of targets, let's extract a few key columns and comput
 results = results_astropy.to_pandas() |> PyTable
 
 # ╔═╡ ea756fff-853a-41b8-902b-a495cee1fd43
-md"""
-We generated a `PyPandasDataFrame` via `PythonCall.jl`'s `PyTable` function, which is basically a generic table type in Julia. We'd like to access all of the cool features from `DataFrames.jl`, so we will construct one directly from `results`:
+@mdx """
+We generated a [`PyPandasDataFrame`](https://cjdoris.github.io/PythonCall.jl/stable/compat/#Tabular-data-and-Pandas) via `PythonCall.jl`'s `PyTable` function, which is basically a generic table type in Julia. We'd like to access the full feature set of `DataFrames.jl`, so we will construct one directly from `results`:
 """
 
 # ╔═╡ 37d2bc2e-ee75-42a9-ba4f-df15c99caf48
 _df_paper = DataFrame(
 	Star = df.name,
 	UCAC4_ID = results.UCAC4,
-	RAJ2000 = results.RAJ2000,
-	DecJ200 = results.DEJ2000,
+	# RAJ2000 = results.RAJ2000,
+	# DecJ200 = results.DEJ2000,
 	B = results.Bmag,
 	V = results.Vmag,
 	J = results.Jmag,
@@ -250,11 +252,15 @@ _df_paper = DataFrame(
 )
 
 # ╔═╡ d6f7f9eb-5776-4419-98e0-f18cd4cee12f
-md"""
+@mdx """
 Now that we have our color magnitudes for each target, we compute a color-space metric ``D``:
 
 ```math
-D \equiv \sqrt{\left[(B-V)_{c}-(B-V)_{t}\right]^{2}+\left[(J-K)_{c}-(J-K)_{t}\right]^{2}}
+D \\equiv \\sqrt{
+	  \\left[(B-V)_c-(B-V)_t\\right]^{2}
+
+	+ \\left[(J-K)_c-(J-K)_t\\right]^{2}
+}
 ```
 
 relative to our main star, "WASP-50":
@@ -279,21 +285,21 @@ relative to our main star, "WASP-50":
 compute_D(B, V, J, K; ΔBVₜ=0.0, ΔJKₜ=0.0) = norm(((B-V)-ΔBVₜ, (J-K)-ΔJKₜ))
 
 # ╔═╡ 96035871-6bcb-4703-9507-3365f92a93d9
-md"""
+@mdx """
 and add it to our table:
 """
 
 # ╔═╡ f3326ab8-21da-403b-b290-7694cefb63fe
 df_paper = @chain _df_paper begin
 	@aside ΔBVₜ, ΔJKₜ = _.B[1] - _.V[1], _.J[1] - _.K[1]
-	@transform :D = compute_D.(:B, :V, :J, :K; ΔBVₜ=ΔBVₜ, ΔJKₜ=ΔJKₜ)
+	@transform :D = compute_D.(:B, :V, :J, :K; ΔBVₜ, ΔJKₜ)
 end
 
 # ╔═╡ 8fbc74d9-c993-4757-865f-b7ec3d84495c
 latexify(df_paper, latex=false, fmt="%.2f")
 
 # ╔═╡ c9b37015-057e-4838-b510-5762819b2462
-md"""
+@mdx """
 !!! note
 	We used the `aside` macro from `DataFramesMeta.jl` to compute intermediate values needed for ``D`` before adding it to our table, which was all done in a chain of actions with `@chain` from the [`Chain.jl`](https://github.com/jkrumbiegel/Chain.jl) package that is automatically included (exported) with `DataFramesMeta.jl`.
 
@@ -302,7 +308,7 @@ md"""
 	```julia
 	@chain df_paper begin
 		@aside ΔBVₜ, ΔJKₜ = _.B[1] - _.V[1], _.J[1] - _.K[1]
-		@transform! :D = compute_D.(:B, :V, :J, :K; ΔBVₜ=ΔBVₜ, ΔJKₜ=ΔJKₜ)
+		@transform! :D = compute_D.(:B, :V, :J, :K; ΔBVₜ, ΔJKₜ)
 	end
 	```
 
@@ -310,19 +316,22 @@ md"""
 """
 
 # ╔═╡ 06d8b523-4a05-43ec-973b-8fe55fa613a1
-md"""
+@mdx """
 Ok, now we can display `df_paper` in a ``LaTeX`` context with [`Latexify.jl`](https://github.com/korsbo/Latexify.jl):
 """
 
 # ╔═╡ 4f3afae4-7b3c-42ed-81a0-936e1348700a
-latexify(df_paper, env=:tabular, latex=false, fmt="%.2f") |> Text
+t = latexify(df_paper, env=:tabular, latex=false, fmt="%.2f") |> Text
+
+# ╔═╡ 875ca00d-0c0c-403e-bbf1-0d2b70a95107
+t
 
 # ╔═╡ 52100a8e-3adf-4337-9985-645a10d9e8cd
-md"""
+@mdx """
 !!! note
 	We used `latex=false` to remove the dollar signs around each number, because this will be used in a [deluxetable](https://journals.aas.org/aastexguide/#preamble_deluxetable) environment that can handle automatic math mode columns.
 
-	To display the nicely rendered ``\LaTeX`` table at the beginning of the document, we just used the default Markdown backend:
+	To display the nicely rendered ``\\LaTeX`` table at the beginning of the document, we just used the default Markdown backend:
 
 	```julia
 	latexify(df_paper, latex=false, fmt="%.2f")
@@ -330,24 +339,8 @@ md"""
 """
 
 # ╔═╡ 34d1417b-2d56-4de0-800e-e65d5f9817fb
-md"""
-We now have a table that we can copy-and-paste into a paper that is definitely not being ignored right now.
-"""
-
-# ╔═╡ 4188732d-1d88-4e98-8510-f74224641919
-html"""
-<style>
-body.disable_ui main {
-		max-width : 95%;
-	}
-@media screen and (min-width: 1081px) {
-	body.disable_ui main {
-		margin-left : 10px;
-		max-width : 72%;
-		align-self: flex-start;
-	}
-}
-</style>
+@mdx """
+We now have a copy-and-pasteable table ✔
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -360,18 +353,20 @@ DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MarkdownLiteral = "736d6165-7244-6769-4267-6b50796e6954"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 
 [compat]
 AstroAngles = "~0.1.3"
-CSV = "~0.10.1"
+CSV = "~0.10.2"
 CondaPkg = "~0.2.4"
-DataFrames = "~1.3.1"
+DataFrames = "~1.3.2"
 DataFramesMeta = "~0.10.0"
 Latexify = "~0.15.9"
-PlutoUI = "~0.7.30"
-PythonCall = "~0.5.0"
+MarkdownLiteral = "~0.1.1"
+PlutoUI = "~0.7.32"
+PythonCall = "~0.5.1"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -409,9 +404,9 @@ version = "1.0.8+0"
 
 [[deps.CSV]]
 deps = ["CodecZlib", "Dates", "FilePathsBase", "InlineStrings", "Mmap", "Parsers", "PooledArrays", "SentinelArrays", "Tables", "Unicode", "WeakRefStrings"]
-git-tree-sha1 = "fbee070c56e0096dac13067eca8181ec148468e1"
+git-tree-sha1 = "9519274b50500b8029973d241d32cfbf0b127d97"
 uuid = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-version = "0.10.1"
+version = "0.10.2"
 
 [[deps.Chain]]
 git-tree-sha1 = "339237319ef4712e6e5df7758d0bccddf5c237d9"
@@ -436,6 +431,12 @@ git-tree-sha1 = "024fe24d83e4a5bf5fc80501a314ce0d1aa35597"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
 version = "0.11.0"
 
+[[deps.CommonMark]]
+deps = ["Crayons", "JSON", "URIs"]
+git-tree-sha1 = "4aff51293dbdbd268df314827b7f409ea57f5b70"
+uuid = "a80b9123-70ca-4bc0-993e-6e3bcb318db6"
+version = "0.8.5"
+
 [[deps.Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
 git-tree-sha1 = "44c37b4636bc54afac5c574d2d02b625349d6582"
@@ -453,9 +454,9 @@ uuid = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
 version = "0.2.4"
 
 [[deps.Crayons]]
-git-tree-sha1 = "b618084b49e78985ffa8422f32b9838e397b9fc2"
+git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
 uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
-version = "4.1.0"
+version = "4.1.1"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "cc70b17275652eb47bc9e5f81635981f13cea5c8"
@@ -464,9 +465,9 @@ version = "1.9.0"
 
 [[deps.DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "cfdfef912b7f93e4b848e80b9befdf9e331bc05a"
+git-tree-sha1 = "ae02104e835f219b8930c7664b8012c93475c340"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "1.3.1"
+version = "1.3.2"
 
 [[deps.DataFramesMeta]]
 deps = ["Chain", "DataFrames", "MacroTools", "OrderedCollections", "Reexport"]
@@ -619,6 +620,12 @@ version = "0.5.9"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
+[[deps.MarkdownLiteral]]
+deps = ["CommonMark", "HypertextLiteral"]
+git-tree-sha1 = "0d3fa2dd374934b62ee16a4721fe68c418b92899"
+uuid = "736d6165-7244-6769-4267-6b50796e6954"
+version = "0.1.1"
+
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
@@ -665,9 +672,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
-git-tree-sha1 = "5c0eb9099596090bb3215260ceca687b888a1575"
+git-tree-sha1 = "ae6145ca68947569058866e443df69587acc1806"
 uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.30"
+version = "0.7.32"
 
 [[deps.PooledArrays]]
 deps = ["DataAPI", "Future"]
@@ -693,9 +700,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.PythonCall]]
 deps = ["CondaPkg", "Dates", "Libdl", "MacroTools", "Markdown", "Pkg", "Requires", "Serialization", "Tables", "UnsafePointers"]
-git-tree-sha1 = "4069e80d13c3b33a2b5680a1464baf264c36e5a0"
+git-tree-sha1 = "402a4d004a9e7c9656758f479f456205f7f6a3ce"
 uuid = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
-version = "0.5.0"
+version = "0.5.1"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -785,6 +792,11 @@ git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.6"
 
+[[deps.URIs]]
+git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.3.0"
+
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
 uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
@@ -822,11 +834,13 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─80664df1-a135-44f9-b83f-41029a503c77
+# ╠═e1ae732a-22de-4f5d-8216-064dd3e3a686
 # ╟─46bee12a-81ca-43ea-932f-8cfa22ad1e9a
 # ╟─4a079964-5ac0-47a0-9ff0-c294df62772e
 # ╟─3dcf92a9-21c2-4cfd-9089-e6fb501c7caf
 # ╟─3941e471-6378-4f6b-a117-81aa08eff0c7
 # ╟─8fbc74d9-c993-4757-865f-b7ec3d84495c
+# ╟─875ca00d-0c0c-403e-bbf1-0d2b70a95107
 # ╟─af553292-ae3e-4966-9746-79de4b86a7e1
 # ╟─769c4b03-4ac0-4a25-9e7d-21825261c3dd
 # ╠═e2d82196-7945-11ec-2d31-ad911cabbfba
@@ -863,7 +877,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═4f3afae4-7b3c-42ed-81a0-936e1348700a
 # ╟─52100a8e-3adf-4337-9985-645a10d9e8cd
 # ╟─34d1417b-2d56-4de0-800e-e65d5f9817fb
-# ╟─27c0f880-b775-458f-9092-a0d4d743d9ab
-# ╟─4188732d-1d88-4e98-8510-f74224641919
+# ╠═27c0f880-b775-458f-9092-a0d4d743d9ab
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
