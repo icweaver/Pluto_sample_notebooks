@@ -1,3 +1,4 @@
 [deps]
 matplotlib = ""
 astropy = ""
+astroquery = ""
