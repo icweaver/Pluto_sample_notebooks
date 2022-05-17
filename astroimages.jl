@@ -27,17 +27,17 @@ fname = download("http://data.astropy.org/tutorials/FITS-images/HorseHead.fits")
 # ╔═╡ a5d80eed-fb12-4980-82db-800a1c4dba49
 img = load(fname)
 
-# ╔═╡ 5fcff0be-3d80-4423-a239-2a00aa376db3
-begin
-	implot(img; wcsticks=true, framestyle=:grid)
-	X, Y = world_to_pix(img, [hms"5 41 00"deg, dms"-2 28"deg])
-	scatter!([X], [Y]; ms=10, msw=0)
-end
-
 # ╔═╡ 0ce5fe45-dd19-4891-89a5-2c9f18daeed4
 l = @layout [
 	img{0.25w} colorbar{0.15h}
 ]
+
+# ╔═╡ 5fcff0be-3d80-4423-a239-2a00aa376db3
+begin
+	implot(img; wcsticks=true, framestyle=:grid, layout=l)
+	# X, Y = world_to_pix(img, [hms"5 41 00"deg, dms"-2 28"deg])
+	# scatter!([X], [Y]; ms=10, msw=0)
+end
 
 # ╔═╡ 9dc84393-af39-4a3d-a878-ab4e924db480
 l
