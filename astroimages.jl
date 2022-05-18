@@ -71,7 +71,7 @@ And then just plot it!
 """
 
 # ╔═╡ 8762e1a5-505b-4eed-8863-35171e8cc8e1
-p = implot(img)
+implot(img)
 
 # ╔═╡ 67e9e89e-7442-4d96-b8e2-fadb900a8cc3
 @mdx """
@@ -82,6 +82,41 @@ For more information about this package and its different capabilities, be sure 
 !!! warning "TODO"
 	Add a demo notebook from Will?
 """
+
+# ╔═╡ d4552736-159b-4c6a-9a97-ef57024333f7
+@mdx """
+### Coordinate conversion aside
+
+Now that we have a nice way to visualize astronomical data with coordinate-aware transformations, let's compose this with regular plot commands from Plots.jl. If we turn off the axes transformations, we recover the typical pixel space information stored in our FITs file:
+"""
+
+# ╔═╡ 6fd6108a-dc97-42ed-a722-bc74c19a0bde
+implot(img; wcsticks=false, framestyle=:grid)
+
+# ╔═╡ b8e06c27-5504-41d1-b07c-c5259ff2681f
+@mdx """
+By default, the origin is in the bottom-left corner and increases to the right and up. Since this is a standard Plots.jl figure object, we can plot a test point on top of it [in the usual way](https://docs.juliaplots.org/latest/basics/):
+"""
+
+# ╔═╡ 12b9a88f-2f9a-4744-ba69-496545a0dac0
+let
+	p = implot(img; wcsticks=false, framestyle=:grid)
+	scatter!(p, [500], [400]; ms=10, msw=0)
+end
+
+# ╔═╡ aa60557e-faf0-4058-96fd-128ca093c773
+@mdx """
+We can go the other direction (from world cordinate space to pixel space) in the following two stages:
+
+1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us
+1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations for us in our final plot
+
+!!! warning "TODO"
+	Check if degrees are being used internally for all cases
+"""
+
+# ╔═╡ 5165c5b5-7b54-4e46-9886-c67b328dc6b6
+@which pix_to_world
 
 # ╔═╡ Cell order:
 # ╟─3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
@@ -94,6 +129,12 @@ For more information about this package and its different capabilities, be sure 
 # ╟─8830d13c-04e7-4333-babc-10bb267993fe
 # ╠═8762e1a5-505b-4eed-8863-35171e8cc8e1
 # ╟─67e9e89e-7442-4d96-b8e2-fadb900a8cc3
+# ╟─d4552736-159b-4c6a-9a97-ef57024333f7
+# ╠═6fd6108a-dc97-42ed-a722-bc74c19a0bde
+# ╟─b8e06c27-5504-41d1-b07c-c5259ff2681f
+# ╠═12b9a88f-2f9a-4744-ba69-496545a0dac0
+# ╟─aa60557e-faf0-4058-96fd-128ca093c773
+# ╠═5165c5b5-7b54-4e46-9886-c67b328dc6b6
 # ╠═05adb41a-5481-478f-9f88-9f94df4fe4b4
 # ╠═2d5365c9-c7d9-4d14-b074-f77b39baec02
 # ╠═55f3b616-ecf6-418a-9bf3-beb5e3a8e555
