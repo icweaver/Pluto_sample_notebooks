@@ -16,9 +16,6 @@ begin
 	using AstroImages, PlutoUI, Plots
 end
 
-# ╔═╡ 05adb41a-5481-478f-9f88-9f94df4fe4b4
-using UnitfulAstro, UnitfulAstro.Unitful
-
 # ╔═╡ 2d5365c9-c7d9-4d14-b074-f77b39baec02
 using AstroImages.AstroAngles
 
@@ -62,7 +59,7 @@ img = load(fname);
 let
 	implot(img; wcsticks=true, framestyle=:grid)
 	X, Y = world_to_pix(img, [hms"5 41 00"deg, dms"-2 28"deg])
-	scatter!([X], [Y]; ms=10, msw=0)
+	scatter!([X], [Y]; ms=10, msw=0, color=:cyan)
 end
 
 # ╔═╡ 8830d13c-04e7-4333-babc-10bb267993fe
@@ -110,16 +107,29 @@ let
 	scatter!(p, [500], [400]; ms=10, msw=0, color=:cyan)
 end
 
+# ╔═╡ e0a44c34-69f8-4037-82a8-60b196b87382
+@mdx """
+!!! Question
+	`wcticks = false` seems to override `grid`. Is there a way to plot in pixel space while still having the grid lines enabled?
+"""
+
 # ╔═╡ aa60557e-faf0-4058-96fd-128ca093c773
 @mdx """
 We can go the other direction (from world cordinate space to pixel space) in the following two stages:
 
-1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us
-1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations for us in our final plot
+1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us. This package supports a wide range of formats, which are listed [here](https://github.com/JuliaAstro/AstroAngles.jl#usage). 
+1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations for us in our final plot.
 
 !!! Question
 	Are degrees used internally for all cases?
 """
+
+# ╔═╡ ba4e4e4e-7f0a-4590-981c-619b53fd0bec
+let
+	implot(img; wcsticks=true, framestyle=:grid)
+	X, Y = world_to_pix(img, [hms"5 41 00"deg, dms"-2 28 00"deg])
+	scatter!([X], [Y]; ms=10, msw=0, color=:cyan)
+end
 
 # ╔═╡ Cell order:
 # ╟─3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
@@ -137,8 +147,9 @@ We can go the other direction (from world cordinate space to pixel space) in the
 # ╠═6fd6108a-dc97-42ed-a722-bc74c19a0bde
 # ╟─b8e06c27-5504-41d1-b07c-c5259ff2681f
 # ╠═12b9a88f-2f9a-4744-ba69-496545a0dac0
+# ╟─e0a44c34-69f8-4037-82a8-60b196b87382
 # ╟─aa60557e-faf0-4058-96fd-128ca093c773
-# ╠═05adb41a-5481-478f-9f88-9f94df4fe4b4
+# ╠═ba4e4e4e-7f0a-4590-981c-619b53fd0bec
 # ╠═2d5365c9-c7d9-4d14-b074-f77b39baec02
 # ╠═55f3b616-ecf6-418a-9bf3-beb5e3a8e555
 # ╠═f19b358c-8506-11ec-252c-c39dcd644d06
