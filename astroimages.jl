@@ -20,6 +20,15 @@ end
 # ╔═╡ 2d5365c9-c7d9-4d14-b074-f77b39baec02
 using AstroImages.AstroAngles
 
+# ╔═╡ cc2aaba1-4dfe-414f-8ace-71075e2f3bf5
+using HTTP
+
+# ╔═╡ ad40234c-474c-489e-b328-73fa5ecfb6e2
+using HTTP.URIs
+
+# ╔═╡ acdf51db-09e0-4e4c-b529-2db8030ea57c
+using CSV, DataFramesMeta
+
 # ╔═╡ 3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
 @mdx """
 # ExoFinder 🪐
@@ -135,6 +144,46 @@ end
 	Is it better to do `using AstroAngles` explicitly here?
 """
 
+# ╔═╡ a6368cc9-b7c6-4ffd-a9ba-5ec33be3cb2b
+@mdx """
+Now that we have a way to plot a single arbitray point, let's extend this to a whole collection of known exoplanet coordinates.
+"""
+
+# ╔═╡ d03ffae4-5a15-448f-a47b-e850049efe80
+@mdx """
+## Exoplanet locations 🎯
+
+The [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/) stores an updated list of known exoplanets, along with additional information about its host star and orbital parameters. As of this writing, there are 5,000+ confirmed detections, and fortunately their is an API to query all of this information!
+
+The archive provides a Table Access Protocol [(TAP)](https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html) service to query the data using an astronomy specific extension of SQL known as Astronomical Data Query Language [(ADQL)](https://www.ivoa.net/documents/ADQL/). This essentially boils down to pasting a query into a url, and then pulling it down with a `GET` request, which we accomplish with [HTTP.jl](https://juliaweb.github.io/HTTP.jl/stable/):
+"""
+
+# ╔═╡ 1319c8bf-ea90-469a-8433-5c3b66b1af07
+q = """
+select top 10 hostname, pl_name, tic_id
+from pscomppars
+"""
+
+# ╔═╡ ef38432c-0ec4-46b7-9444-9321180729d9
+query = "query=" * escapeuri(q) * "&format=csv"
+
+# ╔═╡ 4d073b62-c25b-4cd9-be89-d87144f2bfdb
+@mdx """
+!!! note "Note"
+	We use the `escapeuri` function exported by [URIs.jl](https://docs.juliahub.com/URIs/eec2u/1.3.0/#Tutorial) to convert the spaces and other special characters into valid [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) characters.
+"""
+
+# ╔═╡ 4581038a-fb53-49c7-a85f-60eb153b6f25
+df = CSV.read(
+	HTTP.get("https://exoplanetarchive.ipac.caltech.edu/TAP/sync"; query).body,
+	DataFrame,
+)
+
+# ╔═╡ 403c435d-4d54-49d6-a50f-9f5362ae96d9
+@mdx """
+We now have the data in a convenient table format (provided by [DataFrames.jl](https://dataframes.juliadata.org/stable/)) for our queried exoplanets.
+"""
+
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
 @mdx """
 # Notebook setup 📦
@@ -164,6 +213,16 @@ TableOfContents()
 # ╠═ba4e4e4e-7f0a-4590-981c-619b53fd0bec
 # ╠═2d5365c9-c7d9-4d14-b074-f77b39baec02
 # ╟─f62bae29-e31a-416e-b844-9720a5ef57f2
+# ╟─a6368cc9-b7c6-4ffd-a9ba-5ec33be3cb2b
+# ╟─d03ffae4-5a15-448f-a47b-e850049efe80
+# ╠═cc2aaba1-4dfe-414f-8ace-71075e2f3bf5
+# ╠═ad40234c-474c-489e-b328-73fa5ecfb6e2
+# ╠═1319c8bf-ea90-469a-8433-5c3b66b1af07
+# ╠═ef38432c-0ec4-46b7-9444-9321180729d9
+# ╟─4d073b62-c25b-4cd9-be89-d87144f2bfdb
+# ╠═4581038a-fb53-49c7-a85f-60eb153b6f25
+# ╟─403c435d-4d54-49d6-a50f-9f5362ae96d9
+# ╠═acdf51db-09e0-4e4c-b529-2db8030ea57c
 # ╟─127338cb-b917-4e2d-8ba1-3ed045c799a4
 # ╠═fcceea3e-db8f-4853-af49-240d66d54377
 # ╠═f19b358c-8506-11ec-252c-c39dcd644d06
