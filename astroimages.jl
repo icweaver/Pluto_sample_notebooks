@@ -48,7 +48,7 @@ end
 
 # ╔═╡ 6207daa3-fde6-4535-9ef3-d1e4a762a14d
 @mdx """
-## Sky map 🗺️
+## 🗺️ Sky map
 
 First, let's set up a way to create a coordinate-aware plot of a patch of the sky. We will accomplish this with the handy [AstroImages.jl](https://github.com/JuliaAstro/AstroImages.jl) package. First, we download a sample image (stored in the [FITS](https://en.wikipedia.org/wiki/FITS) file format):
 
@@ -151,7 +151,7 @@ Now that we have a way to plot a single arbitray point, let's extend this to a w
 
 # ╔═╡ d03ffae4-5a15-448f-a47b-e850049efe80
 @mdx """
-## Exoplanet locations 🎯
+## 🎯 Exoplanet locations
 
 The [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/) stores an updated list of known exoplanets, along with additional information about its host star and orbital parameters. As of this writing, there are 5,000+ confirmed detections, and fortunately their is an API to query all of this information!
 
@@ -182,6 +182,13 @@ df = CSV.read(
 # ╔═╡ 403c435d-4d54-49d6-a50f-9f5362ae96d9
 @mdx """
 We now have the data in a convenient table format (provided by [DataFrames.jl](https://dataframes.juliadata.org/stable/)) for our queried exoplanets.
+"""
+
+# ╔═╡ 6db3d93a-0c35-4c27-ace7-1fb44966d864
+@mdx """
+### Data extraction
+
+Whooo
 """
 
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
@@ -222,6 +229,7 @@ TableOfContents()
 # ╟─4d073b62-c25b-4cd9-be89-d87144f2bfdb
 # ╠═4581038a-fb53-49c7-a85f-60eb153b6f25
 # ╟─403c435d-4d54-49d6-a50f-9f5362ae96d9
+# ╟─6db3d93a-0c35-4c27-ace7-1fb44966d864
 # ╠═acdf51db-09e0-4e4c-b529-2db8030ea57c
 # ╟─127338cb-b917-4e2d-8ba1-3ed045c799a4
 # ╠═fcceea3e-db8f-4853-af49-240d66d54377
