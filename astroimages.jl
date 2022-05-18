@@ -49,7 +49,7 @@ end
 First, let's set up a way to create a coordinate-aware plot of a patch of the sky. We will accomplish this with the handy [AstroImages.jl](https://github.com/JuliaAstro/AstroImages.jl) package. First, we download a sample image (stored in the [FITS](https://en.wikipedia.org/wiki/FITS) file format):
 
 !!! warning "TODO"
-	Update with Will's [PR](https://github.com/JuliaAstro/AstroImages.jl/pull/30)
+	Update link with Will's [PR](https://github.com/JuliaAstro/AstroImages.jl/pull/30)
 """
 
 # ╔═╡ bb2425be-3e6a-456d-bad2-e665dc7408aa
@@ -73,6 +73,12 @@ And then just plot it!
 # ╔═╡ 8762e1a5-505b-4eed-8863-35171e8cc8e1
 implot(img)
 
+# ╔═╡ 50666f3e-b5a7-4fab-86a6-979c8da62693
+@mdx """
+!!! Question
+	What was the reasoning for separating `plot` from `implot` again?
+"""
+
 # ╔═╡ 67e9e89e-7442-4d96-b8e2-fadb900a8cc3
 @mdx """
 In the background, AstroImages.jl calls the generic plotting package [Plots.jl](https://docs.juliaplots.org/stable/), and automatically adds a colorbar and tick marks for us. The relevant transformations from pixel space to world coordinates (in this case RA and Dec) are also automatically applied based on the [WCS](https://www.atnf.csiro.au/people/mcalabre/WCS/) information stored in the image of our fits file.
@@ -95,13 +101,13 @@ implot(img; wcsticks=false, framestyle=:grid)
 
 # ╔═╡ b8e06c27-5504-41d1-b07c-c5259ff2681f
 @mdx """
-By default, the origin is in the bottom-left corner and increases to the right and up. Since this is a standard Plots.jl figure object, we can plot a test point on top of it [in the usual way](https://docs.juliaplots.org/latest/basics/):
+By default, the origin is located in the bottom-left corner and indices increase to the right and up. Since `implot` returns a standard Plots.jl figure object, we can plot a test point on top of it [in the usual way](https://docs.juliaplots.org/latest/basics/):
 """
 
 # ╔═╡ 12b9a88f-2f9a-4744-ba69-496545a0dac0
 let
 	p = implot(img; wcsticks=false, framestyle=:grid)
-	scatter!(p, [500], [400]; ms=10, msw=0)
+	scatter!(p, [500], [400]; ms=10, msw=0, color=:cyan)
 end
 
 # ╔═╡ aa60557e-faf0-4058-96fd-128ca093c773
@@ -111,12 +117,9 @@ We can go the other direction (from world cordinate space to pixel space) in the
 1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us
 1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations for us in our final plot
 
-!!! warning "TODO"
-	Check if degrees are being used internally for all cases
+!!! Question
+	Are degrees used internally for all cases?
 """
-
-# ╔═╡ 5165c5b5-7b54-4e46-9886-c67b328dc6b6
-@which pix_to_world
 
 # ╔═╡ Cell order:
 # ╟─3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
@@ -128,13 +131,13 @@ We can go the other direction (from world cordinate space to pixel space) in the
 # ╠═a5d80eed-fb12-4980-82db-800a1c4dba49
 # ╟─8830d13c-04e7-4333-babc-10bb267993fe
 # ╠═8762e1a5-505b-4eed-8863-35171e8cc8e1
+# ╟─50666f3e-b5a7-4fab-86a6-979c8da62693
 # ╟─67e9e89e-7442-4d96-b8e2-fadb900a8cc3
 # ╟─d4552736-159b-4c6a-9a97-ef57024333f7
 # ╠═6fd6108a-dc97-42ed-a722-bc74c19a0bde
 # ╟─b8e06c27-5504-41d1-b07c-c5259ff2681f
 # ╠═12b9a88f-2f9a-4744-ba69-496545a0dac0
 # ╟─aa60557e-faf0-4058-96fd-128ca093c773
-# ╠═5165c5b5-7b54-4e46-9886-c67b328dc6b6
 # ╠═05adb41a-5481-478f-9f88-9f94df4fe4b4
 # ╠═2d5365c9-c7d9-4d14-b074-f77b39baec02
 # ╠═55f3b616-ecf6-418a-9bf3-beb5e3a8e555
