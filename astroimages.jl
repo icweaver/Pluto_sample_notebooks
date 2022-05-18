@@ -14,13 +14,11 @@ begin
 	Pkg.activate(Base.current_project())
 	
 	using AstroImages, PlutoUI, Plots
+	using MarkdownLiteral: @mdx
 end
 
 # ╔═╡ 2d5365c9-c7d9-4d14-b074-f77b39baec02
 using AstroImages.AstroAngles
-
-# ╔═╡ 55f3b616-ecf6-418a-9bf3-beb5e3a8e555
-using MarkdownLiteral: @mdx
 
 # ╔═╡ 3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
 @mdx """
@@ -78,7 +76,7 @@ implot(img)
 
 # ╔═╡ 67e9e89e-7442-4d96-b8e2-fadb900a8cc3
 @mdx """
-In the background, AstroImages.jl calls the generic plotting package [Plots.jl](https://docs.juliaplots.org/stable/), and automatically adds a colorbar and tick marks for us. The relevant transformations from pixel space to world coordinates (in this case RA and Dec) are also automatically applied based on the [WCS](https://www.atnf.csiro.au/people/mcalabre/WCS/) information stored in the image of our fits file.
+In the background, AstroImages.jl calls the generic plotting package [Plots.jl](https://docs.juliaplots.org/stable/), and automatically adds a colorbar, tick marks, labels, and grid lines for us. The relevant transformations from pixel space to world coordinates (in this case RA and Dec) are also automatically applied based on the [WCS](https://www.atnf.csiro.au/people/mcalabre/WCS/) information stored in the image of our fits file.
 
 For more information about this package and its different capabilities, be sure to check out the [demo AstroImages.jl notebook]()!
 
@@ -117,8 +115,8 @@ end
 @mdx """
 We can go the other direction (from world cordinate space to pixel space) in the following two stages:
 
-1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us. This package supports a wide range of formats, which are listed [here](https://github.com/JuliaAstro/AstroAngles.jl#usage). 
-1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations for us in our final plot.
+1. First, we use [AstroAngles.jl](https://github.com/JuliaAstro/AstroAngles.jl) to conveniently convert RA and Dec formatted input to their equivalent values in degrees for us. This package supports a wide range of formats, which are shown [here](https://github.com/JuliaAstro/AstroAngles.jl#usage). 
+1. Next, we pass these values to the `world_to_pix` function exported by `AstroImages.jl` to make the WCS transformations in our final plot.
 
 !!! Question
 	Are degrees used internally for all cases?
@@ -130,6 +128,20 @@ let
 	X, Y = world_to_pix(img, [hms"5 41 00"deg, dms"-2 28 00"deg])
 	scatter!([X], [Y]; ms=10, msw=0, color=:cyan)
 end
+
+# ╔═╡ f62bae29-e31a-416e-b844-9720a5ef57f2
+@mdx """
+!!! Question
+	Is it better to do `using AstroAngles` explicitly here?
+"""
+
+# ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
+@mdx """
+# Notebook setup 📦
+"""
+
+# ╔═╡ fcceea3e-db8f-4853-af49-240d66d54377
+TableOfContents()
 
 # ╔═╡ Cell order:
 # ╟─3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
@@ -151,5 +163,7 @@ end
 # ╟─aa60557e-faf0-4058-96fd-128ca093c773
 # ╠═ba4e4e4e-7f0a-4590-981c-619b53fd0bec
 # ╠═2d5365c9-c7d9-4d14-b074-f77b39baec02
-# ╠═55f3b616-ecf6-418a-9bf3-beb5e3a8e555
+# ╟─f62bae29-e31a-416e-b844-9720a5ef57f2
+# ╟─127338cb-b917-4e2d-8ba1-3ed045c799a4
+# ╠═fcceea3e-db8f-4853-af49-240d66d54377
 # ╠═f19b358c-8506-11ec-252c-c39dcd644d06
