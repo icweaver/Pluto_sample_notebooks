@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.4
+# v0.19.5
 
 #> [frontmatter]
 #> title = "ExoFinder.jl"
@@ -160,8 +160,9 @@ The archive provides a Table Access Protocol [(TAP)](https://exoplanetarchive.ip
 
 # ╔═╡ 1319c8bf-ea90-469a-8433-5c3b66b1af07
 q = """
-select top 10 hostname, pl_name, tic_id
+select top 10 hostname, pl_name, tic_id, ra, dec, sy_vmag
 from pscomppars
+where contains(point('icrs',ra,dec),circle('icrs',85.25,-2.47,8))=1
 """
 
 # ╔═╡ ef38432c-0ec4-46b7-9444-9321180729d9
@@ -179,6 +180,18 @@ df = CSV.read(
 	DataFrame,
 )
 
+# ╔═╡ 58dabe30-7322-4a49-93e5-51f9a921ed0c
+df2 = @chain df begin
+	@aside begin
+		C = Matrix(_[:, [:ra, :dec]])'
+		ra_x, ra_y = eachcol(world_to_pix(img, C)')
+	end
+	@transform begin
+		:ra_px = ra_x
+		:dec_px = ra_y
+	end
+end
+
 # ╔═╡ 403c435d-4d54-49d6-a50f-9f5362ae96d9
 @mdx """
 We now have the data in a convenient table format (provided by [DataFrames.jl](https://dataframes.juliadata.org/stable/)) for our queried exoplanets.
@@ -190,6 +203,57 @@ We now have the data in a convenient table format (provided by [DataFrames.jl](h
 
 Whooo
 """
+
+# ╔═╡ 107fac15-cd49-43bf-9b70-d67c5e09461d
+md"""
+## ⭐ Stellarium?
+"""
+
+# ╔═╡ 0512833c-38d6-4840-bd34-3820c24070ff
+function parse_line(s)
+	tokens = split(s)
+	return (
+		name = tokens[begin],
+		npairs = parse(Int, tokens[begin+1]),
+		ids = parse.(Int, tokens[begin+2:end])
+	)
+end
+
+# ╔═╡ 8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
+# download("https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/western_SnT/constellationship.fab")
+df_constellations = let
+	df = DataFrame()
+	for line ∈ readlines("/home/mango/Desktop/constellationship.fab")
+		row = parse_line(line)
+		push!(df, row)
+	end
+	df
+end
+
+# ╔═╡ fb8d52fa-dc65-4217-9276-d8499185487f
+parse_line(s) |> typeof
+
+# ╔═╡ 767a2fd0-ec0f-410c-8069-7530bacd5f75
+# download("https://raw.githubusercontent.com/astronexus/HYG-Database/master/hygdata_v3.csv")
+df_hyg = let
+	df = CSV.read("/home/mango/Desktop/hygdata_v3.csv", DataFrame)
+	dropmissing(df, [:bayer, :bf])
+end
+
+# ╔═╡ 5c52bec9-342e-4ac9-adc5-eab54a26f35a
+df_leo = df_hyg[occursin.("Leo", df_hyg.bf), [:id, :bf, :bayer, :mag, :ra, :dec]]
+
+# ╔═╡ 278ec4df-9397-42e5-8c3c-708ae91ba787
+scatter(df_leo.ra, df_leo.dec)
+
+# ╔═╡ 58919d69-3eaf-4fc8-8f97-592cf64e72ff
+filter(df_leo, :id .== 10)
+
+# ╔═╡ a2ba3fa1-8b09-4304-bc9e-aed3fbde0264
+ya = df_constellations[df_constellations.name .== "Leo", :]
+
+# ╔═╡ 3291aea2-1e6a-498b-9a0e-a6bd4f9c040e
+ya.ids[1] |> unique
 
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
 @mdx """
@@ -228,9 +292,20 @@ TableOfContents()
 # ╠═ef38432c-0ec4-46b7-9444-9321180729d9
 # ╟─4d073b62-c25b-4cd9-be89-d87144f2bfdb
 # ╠═4581038a-fb53-49c7-a85f-60eb153b6f25
+# ╠═58dabe30-7322-4a49-93e5-51f9a921ed0c
 # ╟─403c435d-4d54-49d6-a50f-9f5362ae96d9
 # ╟─6db3d93a-0c35-4c27-ace7-1fb44966d864
 # ╠═acdf51db-09e0-4e4c-b529-2db8030ea57c
+# ╟─107fac15-cd49-43bf-9b70-d67c5e09461d
+# ╠═8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
+# ╠═0512833c-38d6-4840-bd34-3820c24070ff
+# ╠═fb8d52fa-dc65-4217-9276-d8499185487f
+# ╠═767a2fd0-ec0f-410c-8069-7530bacd5f75
+# ╠═5c52bec9-342e-4ac9-adc5-eab54a26f35a
+# ╠═278ec4df-9397-42e5-8c3c-708ae91ba787
+# ╠═58919d69-3eaf-4fc8-8f97-592cf64e72ff
+# ╠═a2ba3fa1-8b09-4304-bc9e-aed3fbde0264
+# ╠═3291aea2-1e6a-498b-9a0e-a6bd4f9c040e
 # ╟─127338cb-b917-4e2d-8ba1-3ed045c799a4
 # ╠═fcceea3e-db8f-4853-af49-240d66d54377
 # ╠═f19b358c-8506-11ec-252c-c39dcd644d06
