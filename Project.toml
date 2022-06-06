@@ -1,6 +1,7 @@
 [deps]
 AstroImages = "fe3fc30c-9b16-11e9-1c73-17dabf39f4ad"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 MarkdownLiteral = "736d6165-7244-6769-4267-6b50796e6954"
