@@ -236,11 +236,12 @@ end
 df_hyg = let
 	df = CSV.read("/home/mango/Desktop/hygdata_v3.csv", DataFrame)
 	# dropmissing(df, [:bayer, :bf])
+	dropmissing(df, :hip)
 end
 
 # ╔═╡ 79a281b3-50d8-4b8d-ad00-200b311bcd89
 function ra_dec_coord(id, df)
-	tmp = df[df.id .== id, [:ra, :dec]]
+	tmp = df[df.hip .== id, [:ra, :dec]]
 	return tmp[1, 1], tmp[1, 2]
 end
 
@@ -260,19 +261,28 @@ df_constellations = let
 end
 
 # ╔═╡ c6a3fe1a-da12-446e-a639-dc0f0a231f27
-yee = df_constellations[50, [:ra_dec]][1]
-
-# ╔═╡ 364ee60e-60a8-4cb5-b462-5080dd8d9b55
-Mk.linesegments(yee)
-
-# ╔═╡ 7fb5c88d-4101-4061-8cfa-529cec027fea
-yee
+yee = df_constellations[37, [:ra_dec]][1]
 
 # ╔═╡ 1a6abe89-f363-4327-9ac2-5d35637dc77b
 yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
 
 # ╔═╡ 3a1419ef-3acb-4eea-b805-d38fe2fbdf05
 Mk.linesegments(yah)
+
+# ╔═╡ 364ee60e-60a8-4cb5-b462-5080dd8d9b55
+let
+	fig = Mk.Figure()
+	ax = Mk.Axis(fig[1, 1])
+	
+	for row ∈ eachrow(df_constellations)
+		yee = row[:ra_dec]
+		yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
+		Mk.linesegments!(ax, yee)
+		# Mk.linesegments!(ax, yah)
+	end
+
+	fig
+end
 
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
 @mdx """
@@ -322,7 +332,6 @@ TableOfContents()
 # ╠═7694e96c-668c-4f0d-93e6-d9517e733641
 # ╠═c1211cf4-2469-421f-8f37-79b4a423943a
 # ╠═c821ca4f-9e14-490c-9858-49bebc3bc767
-# ╠═7fb5c88d-4101-4061-8cfa-529cec027fea
 # ╠═25ed1bd2-ceba-4dd5-b084-932bc1a99680
 # ╟─0512833c-38d6-4840-bd34-3820c24070ff
 # ╠═767a2fd0-ec0f-410c-8069-7530bacd5f75
