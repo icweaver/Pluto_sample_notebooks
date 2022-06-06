@@ -242,7 +242,7 @@ end
 # ╔═╡ 79a281b3-50d8-4b8d-ad00-200b311bcd89
 function ra_dec_coord(id, df)
 	tmp = df[df.hip .== id, [:ra, :dec]]
-	return tmp[1, 1], tmp[1, 2]
+	return (360/24) * tmp[1, 1], tmp[1, 2]
 end
 
 # ╔═╡ 8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
@@ -264,7 +264,10 @@ end
 yee = df_constellations[37, [:ra_dec]][1]
 
 # ╔═╡ 1a6abe89-f363-4327-9ac2-5d35637dc77b
-yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
+yah = let
+	ps = world_to_pixp.(Ref(wcs), yee)
+	Tuple.(ps)
+end
 
 # ╔═╡ 3a1419ef-3acb-4eea-b805-d38fe2fbdf05
 Mk.linesegments(yah)
@@ -272,13 +275,16 @@ Mk.linesegments(yah)
 # ╔═╡ 364ee60e-60a8-4cb5-b462-5080dd8d9b55
 let
 	fig = Mk.Figure()
-	ax = Mk.Axis(fig[1, 1])
+	L = 4_000
+	ax = Mk.Axis(fig[1, 1];
+		limits = (-L, L, -L, L)
+	)
 	
 	for row ∈ eachrow(df_constellations)
 		yee = row[:ra_dec]
 		yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
-		Mk.linesegments!(ax, yee)
-		# Mk.linesegments!(ax, yah)
+		# Mk.linesegments!(ax, yee)
+		Mk.linesegments!(ax, yah)
 	end
 
 	fig
