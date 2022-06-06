@@ -29,6 +29,9 @@ using HTTP.URIs
 # ╔═╡ acdf51db-09e0-4e4c-b529-2db8030ea57c
 using CSV, DataFramesMeta
 
+# ╔═╡ d77d54e1-827b-4d04-bc24-0992b404d3d7
+using GeoMakie
+
 # ╔═╡ 25ed1bd2-ceba-4dd5-b084-932bc1a99680
 using AstroImages: WCSTransform
 
@@ -290,6 +293,24 @@ let
 	fig
 end
 
+# ╔═╡ 203ff28f-9011-4cc6-a61b-eac1fc5a74b8
+let
+	fig = Mk.Figure()
+	ax = GeoAxis(fig[1, 1];
+		dest = "+proj=wintri",
+		lonlims = automatic,
+	)
+	
+	for row ∈ eachrow(df_constellations)
+		yee = row[:ra_dec]
+		yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
+		# Mk.linesegments!(ax, yee)
+		Mk.linesegments!(ax, yah)
+	end
+
+	fig
+end
+
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
 @mdx """
 # Notebook setup 📦
@@ -334,6 +355,8 @@ TableOfContents()
 # ╠═c6a3fe1a-da12-446e-a639-dc0f0a231f27
 # ╠═1a6abe89-f363-4327-9ac2-5d35637dc77b
 # ╠═364ee60e-60a8-4cb5-b462-5080dd8d9b55
+# ╠═d77d54e1-827b-4d04-bc24-0992b404d3d7
+# ╠═203ff28f-9011-4cc6-a61b-eac1fc5a74b8
 # ╠═3a1419ef-3acb-4eea-b805-d38fe2fbdf05
 # ╠═7694e96c-668c-4f0d-93e6-d9517e733641
 # ╠═c1211cf4-2469-421f-8f37-79b4a423943a
