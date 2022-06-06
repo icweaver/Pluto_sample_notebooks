@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.6
 
 #> [frontmatter]
 #> title = "ExoFinder.jl"
@@ -29,6 +29,9 @@ using HTTP.URIs
 # ╔═╡ acdf51db-09e0-4e4c-b529-2db8030ea57c
 using CSV, DataFramesMeta
 
+# ╔═╡ 25ed1bd2-ceba-4dd5-b084-932bc1a99680
+using AstroImages: WCSTransform
+
 # ╔═╡ 3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
 @mdx """
 # ExoFinder 🪐
@@ -48,7 +51,7 @@ end
 
 # ╔═╡ 6207daa3-fde6-4535-9ef3-d1e4a762a14d
 @mdx """
-## 🗺️ Sky map
+## Sky map 🗺️
 
 First, let's set up a way to create a coordinate-aware plot of a patch of the sky. We will accomplish this with the handy [AstroImages.jl](https://github.com/JuliaAstro/AstroImages.jl) package. First, we download a sample image (stored in the [FITS](https://en.wikipedia.org/wiki/FITS) file format):
 
@@ -72,15 +75,6 @@ end
 # ╔═╡ 8830d13c-04e7-4333-babc-10bb267993fe
 @mdx """
 And then just plot it!
-"""
-
-# ╔═╡ 8762e1a5-505b-4eed-8863-35171e8cc8e1
-implot(img)
-
-# ╔═╡ 50666f3e-b5a7-4fab-86a6-979c8da62693
-@mdx """
-!!! Question
-	What was the reasoning for separating `plot` from `implot` again?
 """
 
 # ╔═╡ 67e9e89e-7442-4d96-b8e2-fadb900a8cc3
@@ -151,7 +145,7 @@ Now that we have a way to plot a single arbitray point, let's extend this to a w
 
 # ╔═╡ d03ffae4-5a15-448f-a47b-e850049efe80
 @mdx """
-## 🎯 Exoplanet locations
+## Exoplanet locations 🎯
 
 The [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/) stores an updated list of known exoplanets, along with additional information about its host star and orbital parameters. As of this writing, there are 5,000+ confirmed detections, and fortunately their is an API to query all of this information!
 
@@ -206,8 +200,26 @@ Whooo
 
 # ╔═╡ 107fac15-cd49-43bf-9b70-d67c5e09461d
 md"""
-## ⭐ Stellarium?
+## Stellarium? ⭐
+
+!!! note
+	Inspired from: <https://github.com/eleanorlutz/western_constellations_atlas_of_space>
 """
+
+# ╔═╡ 7694e96c-668c-4f0d-93e6-d9517e733641
+import CairoMakie as Mk
+
+# ╔═╡ c1211cf4-2469-421f-8f37-79b4a423943a
+wcs = WCSTransform(2;
+	cdelt = [-0.066667, 0.066667],
+	ctype = ["RA---AIR", "DEC--AIR"],
+	crpix = [-234.75, 8.3393],
+	crval = [0., -90],
+	pv    = [(2, 1, 45.0)],
+)
+
+# ╔═╡ c821ca4f-9e14-490c-9858-49bebc3bc767
+world_to_pixp(wcs, p) = world_to_pix(wcs, [p[1], p[2]])
 
 # ╔═╡ 0512833c-38d6-4840-bd34-3820c24070ff
 function parse_line(s)
@@ -219,41 +231,48 @@ function parse_line(s)
 	)
 end
 
-# ╔═╡ 8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
-# download("https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/western_SnT/constellationship.fab")
-df_constellations = let
-	df = DataFrame()
-	for line ∈ readlines("/home/mango/Desktop/constellationship.fab")
-		row = parse_line(line)
-		push!(df, row)
-	end
-	df
-end
-
-# ╔═╡ fb8d52fa-dc65-4217-9276-d8499185487f
-parse_line(s) |> typeof
-
 # ╔═╡ 767a2fd0-ec0f-410c-8069-7530bacd5f75
 # download("https://raw.githubusercontent.com/astronexus/HYG-Database/master/hygdata_v3.csv")
 df_hyg = let
 	df = CSV.read("/home/mango/Desktop/hygdata_v3.csv", DataFrame)
-	dropmissing(df, [:bayer, :bf])
+	# dropmissing(df, [:bayer, :bf])
 end
 
-# ╔═╡ 5c52bec9-342e-4ac9-adc5-eab54a26f35a
-df_leo = df_hyg[occursin.("Leo", df_hyg.bf), [:id, :bf, :bayer, :mag, :ra, :dec]]
+# ╔═╡ 79a281b3-50d8-4b8d-ad00-200b311bcd89
+function ra_dec_coord(id, df)
+	tmp = df[df.id .== id, [:ra, :dec]]
+	return tmp[1, 1], tmp[1, 2]
+end
 
-# ╔═╡ 278ec4df-9397-42e5-8c3c-708ae91ba787
-scatter(df_leo.ra, df_leo.dec)
+# ╔═╡ 8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
+# download("https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/western/constellationship.fab")
+df_constellations = let
+	df = DataFrame()
+	for line ∈ readlines("/home/mango/Desktop/constellationship.fab"; keep=true)
+		!isletter(line[1]) && continue
+		row = parse_line(line)
+		push!(df, row)
+	end
 
-# ╔═╡ 58919d69-3eaf-4fc8-8f97-592cf64e72ff
-filter(df_leo, :id .== 10)
+	@rtransform! df :ra_dec = ra_dec_coord.(:ids, Ref(df_hyg))
+	
+	df
+end
 
-# ╔═╡ a2ba3fa1-8b09-4304-bc9e-aed3fbde0264
-ya = df_constellations[df_constellations.name .== "Leo", :]
+# ╔═╡ c6a3fe1a-da12-446e-a639-dc0f0a231f27
+yee = df_constellations[50, [:ra_dec]][1]
 
-# ╔═╡ 3291aea2-1e6a-498b-9a0e-a6bd4f9c040e
-ya.ids[1] |> unique
+# ╔═╡ 364ee60e-60a8-4cb5-b462-5080dd8d9b55
+Mk.linesegments(yee)
+
+# ╔═╡ 7fb5c88d-4101-4061-8cfa-529cec027fea
+yee
+
+# ╔═╡ 1a6abe89-f363-4327-9ac2-5d35637dc77b
+yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
+
+# ╔═╡ 3a1419ef-3acb-4eea-b805-d38fe2fbdf05
+Mk.linesegments(yah)
 
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
 @mdx """
@@ -265,15 +284,13 @@ TableOfContents()
 
 # ╔═╡ Cell order:
 # ╟─3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
-# ╟─5fcff0be-3d80-4423-a239-2a00aa376db3
+# ╠═5fcff0be-3d80-4423-a239-2a00aa376db3
 # ╟─e58691c1-98ed-4e75-a5bb-e03102e62def
 # ╟─3ea72aeb-356c-4fd1-b228-f0cf0cba2df7
 # ╟─6207daa3-fde6-4535-9ef3-d1e4a762a14d
 # ╠═bb2425be-3e6a-456d-bad2-e665dc7408aa
 # ╠═a5d80eed-fb12-4980-82db-800a1c4dba49
 # ╟─8830d13c-04e7-4333-babc-10bb267993fe
-# ╠═8762e1a5-505b-4eed-8863-35171e8cc8e1
-# ╟─50666f3e-b5a7-4fab-86a6-979c8da62693
 # ╟─67e9e89e-7442-4d96-b8e2-fadb900a8cc3
 # ╟─d4552736-159b-4c6a-9a97-ef57024333f7
 # ╠═6fd6108a-dc97-42ed-a722-bc74c19a0bde
@@ -298,14 +315,18 @@ TableOfContents()
 # ╠═acdf51db-09e0-4e4c-b529-2db8030ea57c
 # ╟─107fac15-cd49-43bf-9b70-d67c5e09461d
 # ╠═8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
-# ╠═0512833c-38d6-4840-bd34-3820c24070ff
-# ╠═fb8d52fa-dc65-4217-9276-d8499185487f
+# ╠═c6a3fe1a-da12-446e-a639-dc0f0a231f27
+# ╠═1a6abe89-f363-4327-9ac2-5d35637dc77b
+# ╠═364ee60e-60a8-4cb5-b462-5080dd8d9b55
+# ╠═3a1419ef-3acb-4eea-b805-d38fe2fbdf05
+# ╠═7694e96c-668c-4f0d-93e6-d9517e733641
+# ╠═c1211cf4-2469-421f-8f37-79b4a423943a
+# ╠═c821ca4f-9e14-490c-9858-49bebc3bc767
+# ╠═7fb5c88d-4101-4061-8cfa-529cec027fea
+# ╠═25ed1bd2-ceba-4dd5-b084-932bc1a99680
+# ╟─0512833c-38d6-4840-bd34-3820c24070ff
 # ╠═767a2fd0-ec0f-410c-8069-7530bacd5f75
-# ╠═5c52bec9-342e-4ac9-adc5-eab54a26f35a
-# ╠═278ec4df-9397-42e5-8c3c-708ae91ba787
-# ╠═58919d69-3eaf-4fc8-8f97-592cf64e72ff
-# ╠═a2ba3fa1-8b09-4304-bc9e-aed3fbde0264
-# ╠═3291aea2-1e6a-498b-9a0e-a6bd4f9c040e
+# ╠═79a281b3-50d8-4b8d-ad00-200b311bcd89
 # ╟─127338cb-b917-4e2d-8ba1-3ed045c799a4
 # ╠═fcceea3e-db8f-4853-af49-240d66d54377
 # ╠═f19b358c-8506-11ec-252c-c39dcd644d06
