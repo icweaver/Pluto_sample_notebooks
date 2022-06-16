@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.6
+# v0.19.9
 
 #> [frontmatter]
 #> title = "ExoFinder.jl"
@@ -29,11 +29,11 @@ using HTTP.URIs
 # ╔═╡ acdf51db-09e0-4e4c-b529-2db8030ea57c
 using CSV, DataFramesMeta
 
-# ╔═╡ d77d54e1-827b-4d04-bc24-0992b404d3d7
-using GeoMakie
-
-# ╔═╡ 25ed1bd2-ceba-4dd5-b084-932bc1a99680
+# ╔═╡ 2c399bbc-c320-4995-a9cd-b293107da69e
 using AstroImages: WCSTransform
+
+# ╔═╡ cbccf3aa-93b7-4e84-9188-aa1743a0ce8d
+using AlgebraOfGraphics: set_aog_theme!
 
 # ╔═╡ 3845b39a-a637-4d2b-b2b9-f4ac0294f0e9
 @mdx """
@@ -157,9 +157,8 @@ The archive provides a Table Access Protocol [(TAP)](https://exoplanetarchive.ip
 
 # ╔═╡ 1319c8bf-ea90-469a-8433-5c3b66b1af07
 q = """
-select top 10 hostname, pl_name, tic_id, ra, dec, sy_vmag
+select top 500 hostname, pl_name, tic_id, ra, dec, sy_vmag
 from pscomppars
-where contains(point('icrs',ra,dec),circle('icrs',85.25,-2.47,8))=1
 """
 
 # ╔═╡ ef38432c-0ec4-46b7-9444-9321180729d9
@@ -172,22 +171,28 @@ query = "query=" * escapeuri(q) * "&format=csv"
 """
 
 # ╔═╡ 4581038a-fb53-49c7-a85f-60eb153b6f25
-df = CSV.read(
+df_exoplanets = CSV.read(
 	HTTP.get("https://exoplanetarchive.ipac.caltech.edu/TAP/sync"; query).body,
 	DataFrame,
 )
 
+# ╔═╡ e7e32261-65b0-49d1-8629-fcab69934675
+df_exoplanets.ra_hr = df_exoplanets.ra * (24 / 360)
+
+# ╔═╡ 25adffdb-e4d4-4401-b81c-de29df27ff13
+df_exoplanets
+
 # ╔═╡ 58dabe30-7322-4a49-93e5-51f9a921ed0c
-df2 = @chain df begin
-	@aside begin
-		C = Matrix(_[:, [:ra, :dec]])'
-		ra_x, ra_y = eachcol(world_to_pix(img, C)')
-	end
-	@transform begin
-		:ra_px = ra_x
-		:dec_px = ra_y
-	end
-end
+# @chain df_exoplanets begin
+# 	# @aside begin
+# 	# 	C = Matrix(_[:, [:ra, :dec]])'
+# 	# 	ra_x, ra_y = eachcol(world_to_pix(img, C)')
+# 	# end
+# 	# @transform begin
+# 	# 	:ra_px = ra_x
+# 	# 	:dec_px = ra_y
+# 	# end
+# end
 
 # ╔═╡ 403c435d-4d54-49d6-a50f-9f5362ae96d9
 @mdx """
@@ -209,20 +214,49 @@ md"""
 	Inspired from: <https://github.com/eleanorlutz/western_constellations_atlas_of_space>
 """
 
+# ╔═╡ 5f82a4ed-079d-4a3b-a264-d53218dee589
+imgg = AstroImage("/home/mango/Desktop/example_maps/1904-66_AZP.fits");
+
+# ╔═╡ 44f11ff7-c3cf-4cdf-8863-37efe883a227
+wcs = AstroImages.wcsfromheader(imgg)[1]
+
+# ╔═╡ 4b950742-6089-43e8-9cbc-8a2c7b3313e2
+world_to_pixp(wcs, p) = world_to_pix(wcs, [p[1], p[2]])
+
+# ╔═╡ 27bb7d33-f377-455c-a46f-0c0f99b35e98
+md"""
+!!! todo
+	Experiment with different coordinate transforms, e.g.:
+
+	```julia
+	using AstroImages: WCSTransform
+
+	wcs = WCSTransform(2;
+		cdelt = [-0.066667, 0.066667],
+		ctype = ["RA---CAR", "DEC--CAR"],
+		crpix = [-248.2173814412, 7.527038199745],
+		crval = [0., -90],
+	)
+
+	# Or
+	# using AstroImages
+	# img = AstroImage("<path/to/fits/file>")
+	# wcs = AstroImages.wcsfromheader(img)[1]
+
+	world_to_pixp(wcs, p) = world_to_pix(wcs, [p[1], p[2]])
+
+	coords_transform = Tuple.(world_to_pixp.(Ref(wcs), coords))
+	Mk.linesegments!(ax, coords_transform)
+	```
+
+	More from here: <https://www.atnf.csiro.au/people/mcalabre/WCS/example_data.html>
+"""
+
+# ╔═╡ 3a7c710d-c8e6-4280-a8cd-1cec91fe2ffd
+set_aog_theme!()
+
 # ╔═╡ 7694e96c-668c-4f0d-93e6-d9517e733641
 import CairoMakie as Mk
-
-# ╔═╡ c1211cf4-2469-421f-8f37-79b4a423943a
-wcs = WCSTransform(2;
-	cdelt = [-0.066667, 0.066667],
-	ctype = ["RA---AIR", "DEC--AIR"],
-	crpix = [-234.75, 8.3393],
-	crval = [0., -90],
-	pv    = [(2, 1, 45.0)],
-)
-
-# ╔═╡ c821ca4f-9e14-490c-9858-49bebc3bc767
-world_to_pixp(wcs, p) = world_to_pix(wcs, [p[1], p[2]])
 
 # ╔═╡ 0512833c-38d6-4840-bd34-3820c24070ff
 function parse_line(s)
@@ -263,52 +297,37 @@ df_constellations = let
 	df
 end
 
-# ╔═╡ c6a3fe1a-da12-446e-a639-dc0f0a231f27
-yee = df_constellations[37, [:ra_dec]][1]
-
-# ╔═╡ 1a6abe89-f363-4327-9ac2-5d35637dc77b
-yah = let
-	ps = world_to_pixp.(Ref(wcs), yee)
-	Tuple.(ps)
-end
-
-# ╔═╡ 3a1419ef-3acb-4eea-b805-d38fe2fbdf05
-Mk.linesegments(yah)
-
 # ╔═╡ 364ee60e-60a8-4cb5-b462-5080dd8d9b55
 let
-	fig = Mk.Figure()
 	L = 4_000
+	fig = Mk.Figure(resolution=(1200, 700))
 	ax = Mk.Axis(fig[1, 1];
-		limits = (-L, L, -L, L)
+		xticks = 0:45:360,
+		yticks = -90:30:90,
+		xlabel = "RA (degrees)",
+		ylabel = "Dec (degrees)",
+		# xreversed = true,
+		# limits = (-L, L, -L, L),
+		title = "Cartesian projection",
 	)
+
+	ax_transform = Mk.Axis(fig[1, 2]; title="Zenithal projection")
+	Mk.hidedecorations!(ax_transform)
 	
+	# Constellations
 	for row ∈ eachrow(df_constellations)
-		yee = row[:ra_dec]
-		yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
-		# Mk.linesegments!(ax, yee)
-		Mk.linesegments!(ax, yah)
+		coords = row[:ra_dec]
+		Mk.linesegments!(ax, coords)
+		coords_transform = Tuple.(world_to_pixp.(Ref(wcs), coords))
+		Mk.linesegments!(ax_transform, coords_transform)
 	end
 
-	fig
-end
-
-# ╔═╡ 203ff28f-9011-4cc6-a61b-eac1fc5a74b8
-let
-	fig = Mk.Figure()
-	ax = GeoAxis(fig[1, 1];
-		dest = "+proj=wintri",
-		lonlims = automatic,
+	# Exoplanets
+	Mk.scatter!(ax, df_exoplanets.ra, df_exoplanets.dec;
+		color = (:darkgrey, 0.5)
 	)
-	
-	for row ∈ eachrow(df_constellations)
-		yee = row[:ra_dec]
-		yah = Tuple.(world_to_pixp.(Ref(wcs), yee))
-		# Mk.linesegments!(ax, yee)
-		Mk.linesegments!(ax, yah)
-	end
 
-	fig
+	fig |> as_svg
 end
 
 # ╔═╡ 127338cb-b917-4e2d-8ba1-3ed045c799a4
@@ -346,22 +365,23 @@ TableOfContents()
 # ╠═ef38432c-0ec4-46b7-9444-9321180729d9
 # ╟─4d073b62-c25b-4cd9-be89-d87144f2bfdb
 # ╠═4581038a-fb53-49c7-a85f-60eb153b6f25
+# ╠═e7e32261-65b0-49d1-8629-fcab69934675
+# ╠═25adffdb-e4d4-4401-b81c-de29df27ff13
 # ╠═58dabe30-7322-4a49-93e5-51f9a921ed0c
 # ╟─403c435d-4d54-49d6-a50f-9f5362ae96d9
 # ╟─6db3d93a-0c35-4c27-ace7-1fb44966d864
 # ╠═acdf51db-09e0-4e4c-b529-2db8030ea57c
 # ╟─107fac15-cd49-43bf-9b70-d67c5e09461d
 # ╠═8eb12793-ba01-4a93-a132-4ca2ccd9ba3e
-# ╠═c6a3fe1a-da12-446e-a639-dc0f0a231f27
-# ╠═1a6abe89-f363-4327-9ac2-5d35637dc77b
+# ╠═5f82a4ed-079d-4a3b-a264-d53218dee589
 # ╠═364ee60e-60a8-4cb5-b462-5080dd8d9b55
-# ╠═d77d54e1-827b-4d04-bc24-0992b404d3d7
-# ╠═203ff28f-9011-4cc6-a61b-eac1fc5a74b8
-# ╠═3a1419ef-3acb-4eea-b805-d38fe2fbdf05
+# ╠═2c399bbc-c320-4995-a9cd-b293107da69e
+# ╠═44f11ff7-c3cf-4cdf-8863-37efe883a227
+# ╠═4b950742-6089-43e8-9cbc-8a2c7b3313e2
+# ╟─27bb7d33-f377-455c-a46f-0c0f99b35e98
+# ╠═3a7c710d-c8e6-4280-a8cd-1cec91fe2ffd
+# ╠═cbccf3aa-93b7-4e84-9188-aa1743a0ce8d
 # ╠═7694e96c-668c-4f0d-93e6-d9517e733641
-# ╠═c1211cf4-2469-421f-8f37-79b4a423943a
-# ╠═c821ca4f-9e14-490c-9858-49bebc3bc767
-# ╠═25ed1bd2-ceba-4dd5-b084-932bc1a99680
 # ╟─0512833c-38d6-4840-bd34-3820c24070ff
 # ╠═767a2fd0-ec0f-410c-8069-7530bacd5f75
 # ╠═79a281b3-50d8-4b8d-ad00-200b311bcd89
